@@ -1,5 +1,7 @@
-*.txt
-
 /out/**
 /client-manifest/**
 /server-manifest/**
+/.idea/**
+
+*.txt
+*.iml
