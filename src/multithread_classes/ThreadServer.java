@@ -68,6 +68,12 @@ public class ThreadServer extends Thread {
                         break;
                     case ("4"):
                         ArrayList<String> usernames = DBMS.readAllUsernames();
+                        ArrayList<Message> allUsersMessages = new ArrayList<>();
+                        for (String username: usernames){
+                            allUsersMessages.addAll(DBMS.readMessages(username));
+                        }
+                        socketOutput.write(buildMessagesJSON(allUsersMessages));
+                        socketOutput.write("Query for all users messages for successfully satisfied\n");
                         break;
                     case ("5"):
                         close();

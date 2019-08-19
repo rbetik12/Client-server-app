@@ -54,12 +54,6 @@ public class Client {
                         socketOutput.write("2\n");
                         socketOutput.flush();
                         String jsonMessage = socketInput.readLine();
-                        ArrayList<Message> messagesList = parseMessagesList(jsonMessage);
-                        System.out.println("==========================Messages==========================");
-                        System.out.println("ID===========Username========Date===============Text========");
-                        for (Message messageFromList : messagesList) {
-                            System.out.println(messageFromList.id + " || " + messageFromList.username + " || " + messageFromList.date + " || " + messageFromList.text);
-                        }
                         System.out.println("Press enter to continue");
                         scanner.nextLine();
                         break;
@@ -73,6 +67,11 @@ public class Client {
                         break;
                     case ("4"):
                         clearScreen();
+                        socketOutput.write("4\n");
+                        socketOutput.flush();
+                        drawMessagesTable(socketInput.readLine());
+                        System.out.println("Press enter to continue");
+                        scanner.nextLine();
                         break;
                     case ("5"):
                         clearScreen();
@@ -87,8 +86,9 @@ public class Client {
                 }
                 if (action.equals("5"))
                     break;
-                else if (!action.equals("back"))
+                else if (!action.equals("back")) {
                     System.out.println(socketInput.readLine());
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -131,6 +131,15 @@ public class Client {
     private void close() throws IOException{
         socketInput.close();
         socketOutput.close();
+    }
+
+    private void drawMessagesTable(String jsonMessage) {
+        ArrayList<Message> messagesList = parseMessagesList(jsonMessage);
+        System.out.println("==========================Messages==========================");
+        System.out.println("ID===========Username========Date===============Text========");
+        for (Message messageFromList : messagesList) {
+            System.out.println(messageFromList.id + " || " + messageFromList.username + " || " + messageFromList.date + " || " + messageFromList.text);
+        }
     }
 
     public static void main(String[] args) {
