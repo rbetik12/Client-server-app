@@ -54,6 +54,7 @@ public class Client {
                         socketOutput.write("2\n");
                         socketOutput.flush();
                         String jsonMessage = socketInput.readLine();
+                        drawMessagesTable(jsonMessage);
                         System.out.println("Press enter to continue");
                         scanner.nextLine();
                         break;
