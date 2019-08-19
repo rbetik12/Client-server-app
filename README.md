@@ -1,4 +1,4 @@
-#Java simple client-server communication app
+# Java simple client-server communication app
 
 Server is multithreaded, so it supports multiple users.
 
