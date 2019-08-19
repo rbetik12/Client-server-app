@@ -1,5 +1,5 @@
 *.txt
 
-/out
-/client-manifest
-/server-manifest
+/out/**
+/client-manifest/**
+/server-manifest/**
