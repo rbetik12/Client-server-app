@@ -1,8 +1,6 @@
 package base_code;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -87,24 +85,52 @@ public class DBMS {
         }
     }
 
-    public static void writeIDCounter(int idCounter) throws IOException {
+    public static void writeID(int id) throws IOException {
         try {
-            fileWriter = new FileWriter("ids.txt");
+            fileWriter = new FileWriter("ids.txt", true);
         } catch (IOException e) {
             Files.write(Paths.get("ids.txt"), "".getBytes());
         } finally {
-            fileWriter.write(String.valueOf(idCounter));
+            fileWriter.write(String.valueOf(id) + "\n");
             fileWriter.close();
         }
     }
 
-    public static int readIDCounter() {
+    public static boolean findID(int id) throws IOException {
         try {
             fileReader = new FileReader("ids.txt");
             Scanner scanner = new Scanner(fileReader);
-            return Integer.parseInt(scanner.nextLine());
+            while (scanner.hasNextLine()) {
+                if (scanner.nextLine().equals(String.valueOf(id)))
+                    return true;
+            }
+            fileReader.close();
+            return false;
         } catch (IOException e) {
-            return 0;
+            Files.write(Paths.get("ids.txt"), String.valueOf(id).getBytes());
+            return false;
+        }
+    }
+
+    public static void removeID(int id) throws IOException {
+        try {
+            File temp = new File("temp.txt");
+            File ids = new File("ids.txt");
+            BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
+            BufferedReader reader = new BufferedReader(new FileReader(ids));
+            String currentLine;
+            while ((currentLine = reader.readLine()) != null) {
+                String trimmedLine = currentLine.trim();
+                if (trimmedLine.equals(String.valueOf(id)))
+                    currentLine = "";
+                writer.write(currentLine + "\n");
+            }
+            writer.close();
+            reader.close();
+            boolean delete = ids.delete();
+            boolean b = temp.renameTo(ids);
+        } catch (IOException e) {
+            Files.write(Paths.get("ids.txt"), "".getBytes());
         }
     }
 }

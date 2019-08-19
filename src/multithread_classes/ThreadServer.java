@@ -6,6 +6,7 @@ import base_code.Message;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,10 +16,10 @@ public class ThreadServer extends Thread {
     private BufferedWriter socketOutput;
     private ArrayList<Message> messages;
     private String login;
-    private int idCounter;
-
+    private Random random;
 
     public ThreadServer(Socket socket) throws IOException {
+        random = new Random();
         this.socket = socket;
         socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         socketOutput = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -31,7 +32,6 @@ public class ThreadServer extends Thread {
         System.out.println("Running...");
         try {
             login = socketInput.readLine();
-            idCounter = DBMS.readIDCounter();
             if (DBMS.findUsername(login))
                 System.out.println("Known user connected " + login);
             else
@@ -41,10 +41,13 @@ public class ThreadServer extends Thread {
                 String action = socketInput.readLine();
                 switch (action) {
                     case ("1"):
+                        int id = random.nextInt(Integer.MAX_VALUE);
                         String jsonMessage = socketInput.readLine();
-                        Message newMessage = parse(jsonMessage, idCounter);
+                        while (DBMS.findID(id))
+                            id = random.nextInt(Integer.MAX_VALUE);
+                        Message newMessage = parse(jsonMessage, id);
                         messages.add(newMessage);
-                        ++idCounter;
+                        DBMS.writeID(id);
                         DBMS.writeMessages(login, messages);
                         socketOutput.write("Message was successfully received and saved\n");
                         break;
@@ -59,6 +62,7 @@ public class ThreadServer extends Thread {
                             if (message.id == messageID) {
                                 messages.remove(message);
                                 messageWasFound = true;
+                                DBMS.removeID(messageID);
                                 break;
                             }
                         }
@@ -92,7 +96,6 @@ public class ThreadServer extends Thread {
             System.out.println("Saving user's messages to db...");
             try {
                 DBMS.writeMessages(login, messages);
-                DBMS.writeIDCounter(idCounter);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -124,7 +127,7 @@ public class ThreadServer extends Thread {
         return jsonMessagesList.toString();
     }
 
-    private Message parse(String message, int idCounter) {
+    private Message parse(String message, int id) {
         Pattern pattern = Pattern.compile("\"(.*?)\"");
         Matcher matcher = pattern.matcher(message);
         String[] info = new String[8];
@@ -133,6 +136,6 @@ public class ThreadServer extends Thread {
             info[i] = matcher.group(1);
             i++;
         }
-        return new Message(idCounter, info[3], Long.parseLong(info[5]), info[7]);
+        return new Message(id, info[3], Long.parseLong(info[5]), info[7]);
     }
 }
