@@ -2,10 +2,7 @@ package base_code;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,7 +51,7 @@ public class Client {
                         socketOutput.write("2\n");
                         socketOutput.flush();
                         String jsonMessage = socketInput.readLine();
-                        drawMessagesTable(jsonMessage);
+                        drawMessagesTable(parseMessagesList(jsonMessage));
                         System.out.println("Press enter to continue");
                         scanner.nextLine();
                         break;
@@ -70,7 +67,24 @@ public class Client {
                         clearScreen();
                         socketOutput.write("4\n");
                         socketOutput.flush();
-                        drawMessagesTable(socketInput.readLine());
+                        System.out.println("Choose how you want to sort table by username (u) or date (d)");
+                        ArrayList<Message> usersMessages = parseMessagesList(socketInput.readLine());
+                        String sortType = "";
+                        while (true){
+                            sortType = scanner.nextLine();
+                            if (sortType.equals("u") || sortType.equals("d"))
+                                break;
+                            System.out.println("Please enter right type of sort");
+                        }
+                        if (sortType.equals("u")){
+                            Comparator<Message> compareByUsername = (o1, o2) -> o1.username.compareTo(o2.username);
+                            usersMessages.sort(compareByUsername);
+                        }
+                        else {
+                            Comparator<Message> compareByDate = (o1, o2) -> Long.compare(o1.date, o2.date);
+                            usersMessages.sort(compareByDate.reversed());
+                        }
+                        drawMessagesTable(usersMessages);
                         System.out.println("Press enter to continue");
                         scanner.nextLine();
                         break;
@@ -134,8 +148,7 @@ public class Client {
         socketOutput.close();
     }
 
-    private void drawMessagesTable(String jsonMessage) {
-        ArrayList<Message> messagesList = parseMessagesList(jsonMessage);
+    private void drawMessagesTable(ArrayList<Message> messagesList) {
         System.out.println("==========================Messages==========================");
         System.out.println("ID===========Username========Date===============Text========");
         for (Message messageFromList : messagesList) {
