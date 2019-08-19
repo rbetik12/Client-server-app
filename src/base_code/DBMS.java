@@ -36,6 +36,21 @@ public class DBMS {
         fileWriter.close();
     }
 
+    public static ArrayList<String> readAllUsernames() throws IOException{
+        ArrayList<String> usernames = new ArrayList<>();
+        try {
+            fileReader = new FileReader("users.txt");
+            Scanner scanner = new Scanner(fileReader);
+            while (scanner.hasNextLine()){
+                usernames.add(scanner.nextLine());
+            }
+            return usernames;
+        } catch (IOException e){
+            Files.write(Paths.get("users.txt"), "".getBytes());
+            return new ArrayList<>();
+        }
+    }
+
     public static void writeMessages(String login, ArrayList<Message> messages) throws IOException {
         try {
             fileWriter = new FileWriter(login + ".txt");

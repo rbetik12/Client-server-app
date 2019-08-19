@@ -14,6 +14,7 @@ public class Server {
     private LinkedList<ThreadServer> serverThreads;
 
     public Server(int port) throws IOException {
+        serverThreads = new LinkedList<>();
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.println("Server started");
         try {

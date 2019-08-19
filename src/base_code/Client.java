@@ -10,13 +10,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-
 public class Client {
     private BufferedReader socketInput;
     private BufferedWriter socketOutput;
     private int messagesCounter;
+    private String login;
 
     public Client(String ip, int port, String login) {
+        this.login = login;
         messagesCounter = 0;
         try (Socket socket = new Socket(ip, port)) {
             socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -28,7 +29,7 @@ public class Client {
                 clearScreen();
                 drawMenu();
                 String action = "";
-                Pattern actionPatter = Pattern.compile("[1-4]");
+                Pattern actionPatter = Pattern.compile("[1-5]");
                 while (true) {
                     action = scanner.nextLine();
                     Matcher matcher = actionPatter.matcher(action);
@@ -72,15 +73,19 @@ public class Client {
                         break;
                     case ("4"):
                         clearScreen();
+                        break;
+                    case ("5"):
+                        clearScreen();
                         System.out.println("To exit please enter your username, if you want to go back enter back");
                         String input = scanner.nextLine();
-                        if (input.equals(login))
-                            socketOutput.write("4\n");
-                        else
+                        if (input.equals(login)) {
+                            socketOutput.write("5\n");
+                            close();
+                        } else
                             action = "back";
                         break;
                 }
-                if (action.equals("4"))
+                if (action.equals("5"))
                     break;
                 else if (!action.equals("back"))
                     System.out.println(socketInput.readLine());
@@ -109,16 +114,23 @@ public class Client {
 
     private void drawMenu() {
         System.out.println("==========================Menu==========================");
+        System.out.println("Hey, " + login);
         System.out.println("1. Write new message");
         System.out.println("2. Show my messages");
         System.out.println("3. Delete my message");
-        System.out.println("4. Exit");
+        System.out.println("4. Show all users messages");
+        System.out.println("5. Exit");
         System.out.println("Enter number of action you want to do...");
     }
 
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
+    }
+
+    private void close() throws IOException{
+        socketInput.close();
+        socketOutput.close();
     }
 
     public static void main(String[] args) {
