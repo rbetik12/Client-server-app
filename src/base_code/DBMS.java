@@ -1,8 +1,6 @@
 package base_code;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -110,6 +108,30 @@ public class DBMS {
         } catch (IOException e) {
             Files.write(Paths.get("ids.txt"), String.valueOf(id).getBytes());
             return false;
+        } finally {
+            fileReader.close();
+        }
+    }
+
+    public static void removeID(int id) throws IOException {
+        try {
+            File temp = new File("temp.txt");
+            File ids = new File("ids.txt");
+            BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
+            BufferedReader reader = new BufferedReader(new FileReader(ids));
+            String currentLine;
+            while ((currentLine = reader.readLine()) != null) {
+                String trimmedLine = currentLine.trim();
+                if (trimmedLine.equals(String.valueOf(id)))
+                    currentLine = "";
+                writer.write(currentLine + "\n");
+            }
+            writer.close();
+            reader.close();
+            boolean delete = ids.delete();
+            boolean b = temp.renameTo(ids);
+        } catch (IOException e) {
+            Files.write(Paths.get("ids.txt"), "".getBytes());
         }
     }
 }

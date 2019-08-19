@@ -62,6 +62,7 @@ public class ThreadServer extends Thread {
                             if (message.id == messageID) {
                                 messages.remove(message);
                                 messageWasFound = true;
+                                DBMS.removeID(messageID);
                                 break;
                             }
                         }

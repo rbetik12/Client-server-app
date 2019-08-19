@@ -2,6 +2,8 @@ package base_code;
 
 import java.io.*;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -151,8 +153,11 @@ public class Client {
     private void drawMessagesTable(ArrayList<Message> messagesList) {
         System.out.println("==========================Messages==========================");
         System.out.println("ID===========Username========Date===============Text========");
+        DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
         for (Message messageFromList : messagesList) {
-            System.out.println(messageFromList.id + " || " + messageFromList.username + " || " + messageFromList.date + " || " + messageFromList.text);
+            Calendar calendar = new GregorianCalendar();
+            calendar.setTime(new Date(messageFromList.date));
+            System.out.println(messageFromList.id + " || " + messageFromList.username + " || " + dateFormat.format(messageFromList.date) + " || " + messageFromList.text);
         }
     }
 
