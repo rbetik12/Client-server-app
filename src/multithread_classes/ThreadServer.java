@@ -1,25 +1,35 @@
+package multithread_classes;
+
+import base_code.DBMS;
+import base_code.Message;
+
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Server {
-    private Socket clientSocket;
+public class ThreadServer extends Thread {
+    private Socket socket;
     private BufferedReader socketInput;
     private BufferedWriter socketOutput;
     private ArrayList<Message> messages;
     private String login;
     private int idCounter;
 
-    public Server(int port) throws IOException {
-        System.out.println("Server started");
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            clientSocket = serverSocket.accept();
-            socketInput = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            socketOutput = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
 
+    public ThreadServer(Socket socket) throws IOException {
+        this.socket = socket;
+        socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        socketOutput = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        System.out.println("New thread was successfully created, launching...");
+        start();
+    }
+
+    @Override
+    public void run() {
+        System.out.println("Running...");
+        try {
             login = socketInput.readLine();
             idCounter = DBMS.readIDCounter();
             if (DBMS.findUsername(login))
@@ -33,10 +43,10 @@ public class Server {
                 switch (action) {
                     case ("1"):
                         String jsonMessage = socketInput.readLine();
-                        Message newMessage = parse(jsonMessage);
+                        Message newMessage = parse(jsonMessage, idCounter);
                         messages.add(newMessage);
                         ++idCounter;
-                        socketOutput.write("Message was successfully received and saved\n");
+                        socketOutput.write("base_code.Message was successfully received and saved\n");
                         break;
                     case ("2"):
                         StringBuilder jsonMessagesList = new StringBuilder("{\"messages\": [");
@@ -54,7 +64,7 @@ public class Server {
                     case ("3"):
                         boolean messageWasFound = false;
                         int messageID = Integer.parseInt(socketInput.readLine());
-                        for (Message message: messages) {
+                        for (Message message : messages) {
                             if (message.id == messageID) {
                                 messages.remove(message);
                                 messageWasFound = true;
@@ -62,28 +72,45 @@ public class Server {
                             }
                         }
                         if (messageWasFound)
-                            socketOutput.write("Message with ID: " + messageID + " was successfully removed\n");
+                            socketOutput.write("base_code.Message with ID: " + messageID + " was successfully removed\n");
                         else
-                            socketOutput.write("Message with ID: " + messageID + " doesn't exist\n");
+                            socketOutput.write("base_code.Message with ID: " + messageID + " doesn't exist\n");
                         break;
                     case ("4"):
-                        clientSocket.close();
+                        close();
                         socketOutput.write("Closing connection...\n");
                         break;
                 }
                 socketOutput.flush();
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            System.out.println("Server is down...");
+            System.out.println("Server thread is down...");
             System.out.println("Saving user's messages to db...");
-            DBMS.writeMessages(login, messages);
-            DBMS.writeIDCounter(idCounter);
+            try {
+                DBMS.writeMessages(login, messages);
+                DBMS.writeIDCounter(idCounter);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private Message parse(String message) {
+    private void close() {
+        try {
+            if (!socket.isClosed()) {
+                socket.close();
+                socketInput.close();
+                socketOutput.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Message parse(String message, int idCounter) {
         Pattern pattern = Pattern.compile("\"(.*?)\"");
         Matcher matcher = pattern.matcher(message);
         String[] info = new String[8];
@@ -93,9 +120,5 @@ public class Server {
             i++;
         }
         return new Message(idCounter, info[3], Long.parseLong(info[5]), info[7]);
-    }
-
-    public static void main(String[] args) throws IOException {
-        Server server = new Server(45777);
     }
 }

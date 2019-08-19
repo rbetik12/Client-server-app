@@ -1,3 +1,5 @@
+package base_code;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -6,6 +8,8 @@ import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+
 
 public class Client {
     private BufferedReader socketInput;
@@ -55,6 +59,8 @@ public class Client {
                         for (Message messageFromList : messagesList) {
                             System.out.println(messageFromList.id + " || " + messageFromList.username + " || " + messageFromList.date + " || " + messageFromList.text);
                         }
+                        System.out.println("Press enter to continue");
+                        scanner.nextLine();
                         break;
                     case ("3"):
                         clearScreen();
@@ -86,20 +92,6 @@ public class Client {
         }
     }
 
-    private void drawMenu() {
-        System.out.println("==========================Menu==========================");
-        System.out.println("1. Write new message");
-        System.out.println("2. Show my messages");
-        System.out.println("3. Delete my message");
-        System.out.println("4. Exit");
-        System.out.println("Enter number of action you want to do...");
-    }
-
-    private static void clearScreen() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-    }
-
     private ArrayList<Message> parseMessagesList(String jsonMessagesList) {
         LinkedList<String> lexems = new LinkedList<>();
         Pattern pattern = Pattern.compile("\"(.*?)\"");
@@ -113,6 +105,20 @@ public class Client {
             messages.add(new Message(Integer.parseInt(lexems.get(i + 1)), lexems.get(i + 3), Long.parseLong(lexems.get(i + 5)), lexems.get(i + 7)));
         }
         return messages;
+    }
+
+    private void drawMenu() {
+        System.out.println("==========================Menu==========================");
+        System.out.println("1. Write new message");
+        System.out.println("2. Show my messages");
+        System.out.println("3. Delete my message");
+        System.out.println("4. Exit");
+        System.out.println("Enter number of action you want to do...");
+    }
+
+    public static void clearScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
     }
 
     public static void main(String[] args) {

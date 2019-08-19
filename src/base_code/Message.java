@@ -1,3 +1,5 @@
+package base_code;
+
 public class Message {
     public int id;
     public String username;
