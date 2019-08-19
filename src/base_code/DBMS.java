@@ -11,6 +11,7 @@ import java.util.Scanner;
 public class DBMS {
     private static FileReader fileReader;
     private static FileWriter fileWriter;
+
     public static boolean findUsername(String username) throws IOException {
         try {
             fileReader = new FileReader("users.txt");
@@ -36,16 +37,16 @@ public class DBMS {
         fileWriter.close();
     }
 
-    public static ArrayList<String> readAllUsernames() throws IOException{
+    public static ArrayList<String> readAllUsernames() throws IOException {
         ArrayList<String> usernames = new ArrayList<>();
         try {
             fileReader = new FileReader("users.txt");
             Scanner scanner = new Scanner(fileReader);
-            while (scanner.hasNextLine()){
+            while (scanner.hasNextLine()) {
                 usernames.add(scanner.nextLine());
             }
             return usernames;
-        } catch (IOException e){
+        } catch (IOException e) {
             Files.write(Paths.get("users.txt"), "".getBytes());
             return new ArrayList<>();
         }
@@ -86,26 +87,23 @@ public class DBMS {
         }
     }
 
-    public static void writeIDCounter(int idCounter) throws IOException{
+    public static void writeIDCounter(int idCounter) throws IOException {
         try {
             fileWriter = new FileWriter("ids.txt");
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             Files.write(Paths.get("ids.txt"), "".getBytes());
-        }
-        finally {
+        } finally {
             fileWriter.write(String.valueOf(idCounter));
             fileWriter.close();
         }
     }
 
-    public static int readIDCounter(){
+    public static int readIDCounter() {
         try {
             fileReader = new FileReader("ids.txt");
             Scanner scanner = new Scanner(fileReader);
             return Integer.parseInt(scanner.nextLine());
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             return 0;
         }
     }

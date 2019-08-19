@@ -45,6 +45,7 @@ public class ThreadServer extends Thread {
                         Message newMessage = parse(jsonMessage, idCounter);
                         messages.add(newMessage);
                         ++idCounter;
+                        DBMS.writeMessages(login, messages);
                         socketOutput.write("Message was successfully received and saved\n");
                         break;
                     case ("2"):
@@ -61,15 +62,16 @@ public class ThreadServer extends Thread {
                                 break;
                             }
                         }
-                        if (messageWasFound)
+                        if (messageWasFound) {
                             socketOutput.write("Message with ID: " + messageID + " was successfully removed\n");
-                        else
+                            DBMS.writeMessages(login, messages);
+                        } else
                             socketOutput.write("Message with ID: " + messageID + " doesn't exist\n");
                         break;
                     case ("4"):
                         ArrayList<String> usernames = DBMS.readAllUsernames();
                         ArrayList<Message> allUsersMessages = new ArrayList<>();
-                        for (String username: usernames){
+                        for (String username : usernames) {
                             allUsersMessages.addAll(DBMS.readMessages(username));
                         }
                         socketOutput.write(buildMessagesJSON(allUsersMessages));
@@ -109,7 +111,7 @@ public class ThreadServer extends Thread {
         }
     }
 
-    private String buildMessagesJSON(ArrayList<Message> messages){
+    private String buildMessagesJSON(ArrayList<Message> messages) {
         StringBuilder jsonMessagesList = new StringBuilder("{\"messages\": [");
         for (int i = 0; i < messages.size(); i++) {
             String listJsonMessage = String.format("{\"id\": \"%s\", \"username\": \"%s\", \"date\": \"%s\", \"text\": \"%s\"}",
@@ -121,6 +123,7 @@ public class ThreadServer extends Thread {
         jsonMessagesList.append("]}\n");
         return jsonMessagesList.toString();
     }
+
     private Message parse(String message, int idCounter) {
         Pattern pattern = Pattern.compile("\"(.*?)\"");
         Matcher matcher = pattern.matcher(message);

@@ -128,7 +128,7 @@ public class Client {
         System.out.flush();
     }
 
-    private void close() throws IOException{
+    private void close() throws IOException {
         socketInput.close();
         socketOutput.close();
     }

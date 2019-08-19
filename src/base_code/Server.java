@@ -22,7 +22,7 @@ public class Server {
                 Socket socket = serverSocket.accept();
                 try {
                     serverThreads.add(new ThreadServer(socket));
-                }catch (IOException e) {
+                } catch (IOException e) {
                     socket.close();
                 }
             }
