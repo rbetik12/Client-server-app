@@ -104,12 +104,11 @@ public class DBMS {
                 if (scanner.nextLine().equals(String.valueOf(id)))
                     return true;
             }
+            fileReader.close();
             return false;
         } catch (IOException e) {
             Files.write(Paths.get("ids.txt"), String.valueOf(id).getBytes());
             return false;
-        } finally {
-            fileReader.close();
         }
     }
 
