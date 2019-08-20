@@ -40,7 +40,6 @@ public class ThreadServer extends Thread {
             while (true) {
 //                System.out.println("here12");
                 String action = socketInput.readLine();
-//                System.out.println(action);
                 switch (action) {
                     case ("1"):
                         int id = random.nextInt(Integer.MAX_VALUE);

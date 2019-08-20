@@ -28,7 +28,7 @@ public class Client {
                 clearScreen();
                 drawMenu();
                 String action = "";
-                Pattern actionPatter = Pattern.compile("[1-5]");
+                Pattern actionPatter = Pattern.compile("[1-6]");
                 while (true) {
                     action = scanner.nextLine();
                     Matcher matcher = actionPatter.matcher(action);
@@ -110,6 +110,24 @@ public class Client {
                             System.out.println(socketInput.readLine());
                         }
                         break;
+                    case ("6"):
+//                        socketOutput.write("6\n");
+                        String filename = scanner.nextLine();
+                        try (Socket fileSocket = new Socket("127.0.0.1", 45778);
+                             InputStream fileInput = new FileInputStream(new File("ids.txt"));
+                             DataOutputStream fileSocketOut = new DataOutputStream(fileSocket.getOutputStream());
+                             BufferedWriter socketOut = new BufferedWriter(new OutputStreamWriter(fileSocket.getOutputStream()))) {
+                            socketOut.write(filename);
+                            socketOut.flush();
+                            byte[] buffer = new byte[4096];
+                            int countOfBytes = 1;
+                            while(true) {
+                                countOfBytes = fileInput.read(buffer);
+                                if (countOfBytes <= 0)
+                                    break;
+                                fileSocketOut.write(buffer, 0, buffer.length);
+                            }
+                        }
                 }
                 if (action.equals("5")) {
 //                    System.out.println("here2");
@@ -147,6 +165,7 @@ public class Client {
         System.out.println("3. Delete my message");
         System.out.println("4. Show all users messages");
         System.out.println("5. Exit");
+        System.out.println("6. Load file on server");
         System.out.println("Enter number of action you want to do...");
     }
 
