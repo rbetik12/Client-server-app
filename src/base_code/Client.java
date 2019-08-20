@@ -47,6 +47,7 @@ public class Client {
                         socketOutput.write("1\n");
                         socketOutput.write(message + "\n");
                         socketOutput.flush();
+                        System.out.println(socketInput.readLine());
                         break;
                     case ("2"):
                         clearScreen();
@@ -56,6 +57,7 @@ public class Client {
                         drawMessagesTable(parseMessagesList(jsonMessage));
                         System.out.println("Press enter to continue");
                         scanner.nextLine();
+                        System.out.println(socketInput.readLine());
                         break;
                     case ("3"):
                         clearScreen();
@@ -64,6 +66,7 @@ public class Client {
                         socketOutput.write("3\n");
                         socketOutput.write(messageID + "\n");
                         socketOutput.flush();
+                        System.out.println(socketInput.readLine());
                         break;
                     case ("4"):
                         clearScreen();
@@ -72,23 +75,23 @@ public class Client {
                         System.out.println("Choose how you want to sort table by username (u) or date (d)");
                         ArrayList<Message> usersMessages = parseMessagesList(socketInput.readLine());
                         String sortType = "";
-                        while (true){
+                        while (true) {
                             sortType = scanner.nextLine();
                             if (sortType.equals("u") || sortType.equals("d"))
                                 break;
                             System.out.println("Please enter right type of sort");
                         }
-                        if (sortType.equals("u")){
+                        if (sortType.equals("u")) {
                             Comparator<Message> compareByUsername = (o1, o2) -> o1.username.compareTo(o2.username);
                             usersMessages.sort(compareByUsername);
-                        }
-                        else {
+                        } else {
                             Comparator<Message> compareByDate = (o1, o2) -> Long.compare(o1.date, o2.date);
                             usersMessages.sort(compareByDate.reversed());
                         }
                         drawMessagesTable(usersMessages);
                         System.out.println("Press enter to continue");
                         scanner.nextLine();
+                        System.out.println(socketInput.readLine());
                         break;
                     case ("5"):
                         clearScreen();
@@ -96,16 +99,23 @@ public class Client {
                         String input = scanner.nextLine();
                         if (input.equals(login)) {
                             socketOutput.write("5\n");
-                            close();
-                        } else
+                        } else {
                             action = "back";
+                            socketOutput.write("7\n");
+                        }
+                        socketOutput.flush();
+//                        System.out.println("here");
+                        if (!action.equals("back")) {
+//                            System.out.println("here1");
+                            System.out.println(socketInput.readLine());
+                        }
                         break;
                 }
-                if (action.equals("5"))
+                if (action.equals("5")) {
+//                    System.out.println("here2");
                     break;
-                else if (!action.equals("back")) {
-                    System.out.println(socketInput.readLine());
                 }
+//                System.out.println("here3");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -146,8 +156,6 @@ public class Client {
     }
 
     private void close() throws IOException {
-        socketInput.close();
-        socketOutput.close();
     }
 
     private void drawMessagesTable(ArrayList<Message> messagesList) {

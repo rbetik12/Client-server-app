@@ -38,7 +38,9 @@ public class ThreadServer extends Thread {
                 System.out.println("New user connected " + login);
             messages = DBMS.readMessages(login);
             while (true) {
+//                System.out.println("here12");
                 String action = socketInput.readLine();
+//                System.out.println(action);
                 switch (action) {
                     case ("1"):
                         int id = random.nextInt(Integer.MAX_VALUE);
@@ -82,8 +84,11 @@ public class ThreadServer extends Thread {
                         socketOutput.write("Query for all users messages for successfully satisfied\n");
                         break;
                     case ("5"):
-                        close();
+//                        System.out.println("Server here0");
                         socketOutput.write("Closing connection...\n");
+                        socketOutput.flush();
+//                        System.out.println("Server here");
+                        close();
                         break;
                 }
                 socketOutput.flush();
