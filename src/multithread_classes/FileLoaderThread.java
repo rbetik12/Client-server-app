@@ -1,17 +1,17 @@
 package multithread_classes;
 
-import exceptions.ThreadClosed;
+import base_code.Server;
 
 import java.io.*;
 import java.net.Socket;
 
 public class FileLoaderThread extends Thread {
     private Socket socket;
-    private BufferedReader socketIn;
+    private DataInputStream socketIn;
 
     public FileLoaderThread(Socket socket) throws IOException {
         this.socket = socket;
-        socketIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        socketIn = new DataInputStream(socket.getInputStream());
         start();
     }
 
@@ -19,22 +19,42 @@ public class FileLoaderThread extends Thread {
     public void run() {
         String filename = null;
         try {
-            filename = socketIn.readLine();
+            filename = socketIn.readUTF();
+            System.out.println(filename);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        try (DataInputStream socketFileInput = new DataInputStream(socket.getInputStream());
-             OutputStream fileOutput = new FileOutputStream(new File(filename))) {
+        try {
+            OutputStream fileOutput = new FileOutputStream(new File("new" + filename));
             byte[] buffer = new byte[4096];
             int countOfBytes = 1;
-            while (true) {
-                countOfBytes = socketFileInput.read(buffer);
-                if (countOfBytes <= 0)
-                    break;
-                fileOutput.write(buffer, 0 , buffer.length);
+            while ((countOfBytes = socketIn.read(buffer)) > 0) {
+                System.out.println(countOfBytes);
+                fileOutput.write(buffer, 0, countOfBytes);
             }
-            socket.close();
-            throw new ThreadClosed();
+            socketIn.close();
+            fileOutput.close();
+            System.out.println(filename + " was successfully written to server");
+            close();
+        } catch (IOException ignored) {
+        }
+    }
+
+    private void close() {
+        try {
+            if (!socket.isClosed()) {
+                socket.shutdownInput();
+                socket.shutdownOutput();
+                socket.close();
+                for (FileLoaderThread thread : Server.getFileLoaderThreads()) {
+                    if (thread == this) {
+                        thread.interrupt();
+                        thread.stop();
+                        System.out.println(thread.isAlive());
+                        Server.getFileLoaderThreads().remove(this);
+                    }
+                }
+            }
         } catch (IOException ignored) {
         }
     }

@@ -11,7 +11,7 @@ import java.util.LinkedList;
 
 
 public class Server {
-
+    private static LinkedList<FileLoaderThread> fileLoaderThreads;
 
     public Server(int serverPort, int fileLoaderPort) throws IOException {
         new ServerListener(serverPort);
@@ -53,7 +53,6 @@ public class Server {
     }
 
     public class FileLoaderListener extends Thread {
-        private LinkedList<FileLoaderThread> fileLoaderThreads;
         private ServerSocket serverSocket;
 
         public FileLoaderListener(int port) throws IOException {
@@ -83,6 +82,10 @@ public class Server {
                 }
             }
         }
+
+    }
+    public static LinkedList<FileLoaderThread> getFileLoaderThreads(){
+        return fileLoaderThreads;
     }
 
     public static void main(String[] args) throws IOException {

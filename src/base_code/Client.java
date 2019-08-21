@@ -104,36 +104,28 @@ public class Client {
                             socketOutput.write("7\n");
                         }
                         socketOutput.flush();
-//                        System.out.println("here");
                         if (!action.equals("back")) {
-//                            System.out.println("here1");
                             System.out.println(socketInput.readLine());
                         }
                         break;
                     case ("6"):
-//                        socketOutput.write("6\n");
                         String filename = scanner.nextLine();
+                        System.out.println(filename);
                         try (Socket fileSocket = new Socket("127.0.0.1", 45778);
-                             InputStream fileInput = new FileInputStream(new File("ids.txt"));
-                             DataOutputStream fileSocketOut = new DataOutputStream(fileSocket.getOutputStream());
-                             BufferedWriter socketOut = new BufferedWriter(new OutputStreamWriter(fileSocket.getOutputStream()))) {
-                            socketOut.write(filename);
-                            socketOut.flush();
+                             InputStream fileInput = new FileInputStream(new File(filename));
+                             DataOutputStream socketOut = new DataOutputStream(fileSocket.getOutputStream())) {
+                            socketOut.writeUTF(filename);
                             byte[] buffer = new byte[4096];
                             int countOfBytes = 1;
-                            while(true) {
-                                countOfBytes = fileInput.read(buffer);
-                                if (countOfBytes <= 0)
-                                    break;
-                                fileSocketOut.write(buffer, 0, buffer.length);
+                            while ((countOfBytes = fileInput.read(buffer)) > 0) {
+                                System.out.println(countOfBytes);
+                                socketOut.write(buffer, 0, countOfBytes);
                             }
                         }
                 }
                 if (action.equals("5")) {
-//                    System.out.println("here2");
                     break;
                 }
-//                System.out.println("here3");
             }
         } catch (IOException e) {
             e.printStackTrace();

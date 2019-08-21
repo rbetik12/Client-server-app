@@ -38,7 +38,6 @@ public class ThreadServer extends Thread {
                 System.out.println("New user connected " + login);
             messages = DBMS.readMessages(login);
             while (true) {
-//                System.out.println("here12");
                 String action = socketInput.readLine();
                 switch (action) {
                     case ("1"):
