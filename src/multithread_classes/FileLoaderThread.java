@@ -9,10 +9,12 @@ import java.net.Socket;
 public class FileLoaderThread extends Thread {
     private Socket socket;
     private DataInputStream socketIn;
+    private DataOutputStream socketOut;
 
     public FileLoaderThread(Socket socket) throws IOException {
         this.socket = socket;
         socketIn = new DataInputStream(socket.getInputStream());
+        socketOut = new DataOutputStream(socket.getOutputStream());
         start();
     }
 
@@ -29,17 +31,39 @@ public class FileLoaderThread extends Thread {
             close();
         } else {
             try {
-                OutputStream fileOutput = new FileOutputStream(new File(filename));
-                byte[] buffer = new byte[4096];
-                int countOfBytes = 1;
-                while ((countOfBytes = socketIn.read(buffer)) > 0) {
-                    fileOutput.write(buffer, 0, countOfBytes);
+                String action = socketIn.readUTF();
+                if (action.equals("6")) {
+                    OutputStream fileOutput = new FileOutputStream(new File(filename));
+                    byte[] buffer = new byte[4096];
+                    int countOfBytes = 1;
+                    while ((countOfBytes = socketIn.read(buffer)) > 0) {
+                        fileOutput.write(buffer, 0, countOfBytes);
+                    }
+                    socketIn.close();
+                    fileOutput.close();
+                    DBMS.writeFilename(filename);
+                    close();
+                    System.out.println(filename + " was successfully written to server");
                 }
-                socketIn.close();
-                fileOutput.close();
-                DBMS.writeFilename(filename);
-                close();
-                System.out.println(filename + " was successfully written to server");
+                else {
+                    if (DBMS.findFilename(filename)){
+                        socketOut.writeUTF("okay");
+                        InputStream fileInput = new FileInputStream(new File(filename));
+                        byte[] buffer = new byte[4096];
+                        int countOfBytes;
+                        while ((countOfBytes = fileInput.read(buffer)) > 0){
+                            socketOut.write(buffer, 0, countOfBytes);
+                        }
+                        socketOut.close();
+                        fileInput.close();
+                        close();
+                        System.out.println(filename + " was sent to client");
+                    }
+                    else
+                        socketOut.writeUTF("null");
+                    socketOut.close();
+                    close();
+                }
             } catch (IOException ignored) {
             }
         }

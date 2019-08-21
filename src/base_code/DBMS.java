@@ -144,4 +144,19 @@ public class DBMS {
             fileWriter.close();
         }
     }
+
+    public synchronized static boolean findFilename(String filename) {
+        try {
+            fileReader = new FileReader("files.txt");
+            Scanner scanner = new Scanner(fileReader);
+            while (scanner.hasNextLine()) {
+                if (scanner.nextLine().equals(filename))
+                    return true;
+            }
+            fileReader.close();
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 }

@@ -28,7 +28,7 @@ public class Client {
                 clearScreen();
                 drawMenu();
                 String action = "";
-                Pattern actionPatter = Pattern.compile("[1-6]");
+                Pattern actionPatter = Pattern.compile("[1-7]");
                 while (true) {
                     action = scanner.nextLine();
                     Matcher matcher = actionPatter.matcher(action);
@@ -114,16 +114,41 @@ public class Client {
                              InputStream fileInput = new FileInputStream(new File(filename));
                              DataOutputStream socketOut = new DataOutputStream(fileSocket.getOutputStream())) {
                             socketOut.writeUTF(filename);
+                            socketOut.writeUTF("6");
                             byte[] buffer = new byte[4096];
                             int countOfBytes = 1;
                             while ((countOfBytes = fileInput.read(buffer)) > 0) {
                                 socketOut.write(buffer, 0, countOfBytes);
                             }
-                        }
-                        catch (FileNotFoundException ignored){
+                        } catch (FileNotFoundException ignored) {
                             System.out.println("File doesn't exist, press enter to continue");
                             scanner.nextLine();
                         }
+                        break;
+                    case ("7"):
+                        String filename1 = scanner.nextLine();
+                        try (Socket getFileSocket = new Socket("127.0.0.1", 45778);
+                             DataOutputStream socketOut = new DataOutputStream(getFileSocket.getOutputStream());
+                             DataInputStream socketIn = new DataInputStream(getFileSocket.getInputStream())) {
+                            socketOut.writeUTF(filename1);
+                            socketOut.writeUTF("7");
+                            if (socketIn.readUTF().equals("null")){
+                                System.out.println("File wasn't found on a server");
+                            }
+                            else {
+                                OutputStream fileOutput = new FileOutputStream(new File(filename1));
+                                byte[] buffer = new byte[4096];
+                                int countOfBytes = 1;
+                                while ((countOfBytes = socketIn.read(buffer)) > 0) {
+                                    fileOutput.write(buffer, 0, countOfBytes);
+                                }
+                                socketIn.close();
+                                fileOutput.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        break;
                 }
                 if (action.equals("5")) {
                     break;
@@ -160,6 +185,7 @@ public class Client {
         System.out.println("4. Show all users messages");
         System.out.println("5. Exit");
         System.out.println("6. Load file on server");
+        System.out.println("7. Get file from server");
         System.out.println("Enter number of action you want to do...");
     }
 
