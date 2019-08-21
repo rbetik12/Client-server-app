@@ -109,6 +109,8 @@ public class Client {
                         }
                         break;
                     case ("6"):
+                        clearScreen();
+                        System.out.println("Enter file name: ");
                         String filename = scanner.nextLine();
                         try (Socket fileSocket = new Socket("127.0.0.1", 45778);
                              InputStream fileInput = new FileInputStream(new File(filename));
@@ -126,6 +128,8 @@ public class Client {
                         }
                         break;
                     case ("7"):
+                        clearScreen();
+                        System.out.println("Enter file name: ");
                         String filename1 = scanner.nextLine();
                         try (Socket getFileSocket = new Socket("127.0.0.1", 45778);
                              DataOutputStream socketOut = new DataOutputStream(getFileSocket.getOutputStream());
@@ -134,6 +138,8 @@ public class Client {
                             socketOut.writeUTF("7");
                             if (socketIn.readUTF().equals("null")){
                                 System.out.println("File wasn't found on a server");
+                                System.out.println("Press enter to continue");
+                                scanner.nextLine();
                             }
                             else {
                                 OutputStream fileOutput = new FileOutputStream(new File(filename1));
@@ -182,7 +188,7 @@ public class Client {
         System.out.println("1. Write new message");
         System.out.println("2. Show my messages");
         System.out.println("3. Delete my message");
-        System.out.println("4. Show all users messages");
+        System.out.println("4. Show all users messages and files");
         System.out.println("5. Exit");
         System.out.println("6. Load file on server");
         System.out.println("7. Get file from server");
