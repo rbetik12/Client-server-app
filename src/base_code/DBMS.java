@@ -10,7 +10,7 @@ public class DBMS {
     private static FileReader fileReader;
     private static FileWriter fileWriter;
 
-    public static boolean findUsername(String username) throws IOException {
+    public synchronized static boolean findUsername(String username) throws IOException {
         try {
             fileReader = new FileReader("users.txt");
             Scanner scanner = new Scanner(fileReader);
@@ -29,13 +29,13 @@ public class DBMS {
         }
     }
 
-    public static void writeUsername(String username) throws IOException {
+    public synchronized static void writeUsername(String username) throws IOException {
         fileWriter = new FileWriter("users.txt", true);
         fileWriter.write("\n" + username);
         fileWriter.close();
     }
 
-    public static ArrayList<String> readAllUsernames() throws IOException {
+    public synchronized static ArrayList<String> readAllUsernames() throws IOException {
         ArrayList<String> usernames = new ArrayList<>();
         try {
             fileReader = new FileReader("users.txt");
@@ -50,7 +50,7 @@ public class DBMS {
         }
     }
 
-    public static void writeMessages(String login, ArrayList<Message> messages) throws IOException {
+    public synchronized static void writeMessages(String login, ArrayList<Message> messages) throws IOException {
         try {
             fileWriter = new FileWriter(login + ".txt");
         } catch (IOException e) {
@@ -66,7 +66,7 @@ public class DBMS {
         }
     }
 
-    public static ArrayList<Message> readMessages(String login) {
+    public synchronized static ArrayList<Message> readMessages(String login) {
         ArrayList<Message> messages = new ArrayList<>();
         try {
             fileReader = new FileReader(login + ".txt");
@@ -85,7 +85,7 @@ public class DBMS {
         }
     }
 
-    public static void writeID(int id) throws IOException {
+    public synchronized static void writeID(int id) throws IOException {
         try {
             fileWriter = new FileWriter("ids.txt", true);
         } catch (IOException e) {
@@ -96,7 +96,7 @@ public class DBMS {
         }
     }
 
-    public static boolean findID(int id) throws IOException {
+    public synchronized static boolean findID(int id) throws IOException {
         try {
             fileReader = new FileReader("ids.txt");
             Scanner scanner = new Scanner(fileReader);
@@ -112,7 +112,7 @@ public class DBMS {
         }
     }
 
-    public static void removeID(int id) throws IOException {
+    public synchronized static void removeID(int id) throws IOException {
         try {
             File temp = new File("temp.txt");
             File ids = new File("ids.txt");
@@ -131,6 +131,17 @@ public class DBMS {
             boolean b = temp.renameTo(ids);
         } catch (IOException e) {
             Files.write(Paths.get("ids.txt"), "".getBytes());
+        }
+    }
+
+    public synchronized static void writeFilename(String filename) throws IOException {
+        try {
+            fileWriter = new FileWriter("files.txt", true);
+        } catch (IOException e) {
+            Files.write(Paths.get("files.txt"), filename.getBytes());
+        } finally {
+            fileWriter.write(filename + "\n");
+            fileWriter.close();
         }
     }
 }

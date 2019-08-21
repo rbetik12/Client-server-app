@@ -1,5 +1,6 @@
 package multithread_classes;
 
+import base_code.DBMS;
 import base_code.Server;
 
 import java.io.*;
@@ -28,7 +29,7 @@ public class FileLoaderThread extends Thread {
             close();
         } else {
             try {
-                OutputStream fileOutput = new FileOutputStream(new File("new" + filename));
+                OutputStream fileOutput = new FileOutputStream(new File(filename));
                 byte[] buffer = new byte[4096];
                 int countOfBytes = 1;
                 while ((countOfBytes = socketIn.read(buffer)) > 0) {
@@ -36,8 +37,9 @@ public class FileLoaderThread extends Thread {
                 }
                 socketIn.close();
                 fileOutput.close();
-                System.out.println(filename + " was successfully written to server");
+                DBMS.writeFilename(filename);
                 close();
+                System.out.println(filename + " was successfully written to server");
             } catch (IOException ignored) {
             }
         }
