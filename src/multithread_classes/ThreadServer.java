@@ -79,7 +79,8 @@ public class ThreadServer extends Thread {
                             allUsersMessages.addAll(DBMS.readMessages(username));
                         }
                         socketOutput.write(buildMessagesJSON(allUsersMessages));
-                        socketOutput.write("Query for all users messages for successfully satisfied\n");
+                        socketOutput.write(buildFilesJSON(DBMS.getFilenames()));
+                        socketOutput.write("Query for all users messages and files successfully satisfied\n");
                         break;
                     case ("5"):
 //                        System.out.println("Server here0");
@@ -128,6 +129,18 @@ public class ThreadServer extends Thread {
         }
         jsonMessagesList.append("]}\n");
         return jsonMessagesList.toString();
+    }
+
+    private String buildFilesJSON(ArrayList<String> files){
+        StringBuilder jsonFilesList = new StringBuilder("{\"files\": [");
+        for (int i = 0; i < files.size(); i++){
+            String jsonFile = String.format("\"%s\"", files.get(i));
+            if (i != files.size() - 1)
+                jsonFile += ",";
+            jsonFilesList.append(jsonFile);
+        }
+        jsonFilesList.append("]}\n");
+        return jsonFilesList.toString();
     }
 
     private Message parse(String message, int id) {

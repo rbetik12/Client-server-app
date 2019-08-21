@@ -159,4 +159,19 @@ public class DBMS {
             return false;
         }
     }
+
+    public synchronized static ArrayList<String> getFilenames(){
+        try {
+            fileReader = new FileReader("files.txt");
+            Scanner scanner = new Scanner(fileReader);
+            ArrayList<String> filenames = new ArrayList<>();
+            while (scanner.hasNextLine()) {
+                filenames.add(scanner.nextLine());
+            }
+            fileReader.close();
+            return filenames;
+        } catch (IOException e) {
+            return new ArrayList<>();
+        }
+    }
 }

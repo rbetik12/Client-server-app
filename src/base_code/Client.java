@@ -89,6 +89,8 @@ public class Client {
                             usersMessages.sort(compareByDate.reversed());
                         }
                         drawMessagesTable(usersMessages);
+                        String filesJSON = socketInput.readLine();
+                        drawFilesTable(parseFilesList(filesJSON));
                         System.out.println("Press enter to continue");
                         scanner.nextLine();
                         System.out.println(socketInput.readLine());
@@ -119,9 +121,12 @@ public class Client {
                             socketOut.writeUTF("6");
                             byte[] buffer = new byte[4096];
                             int countOfBytes = 1;
+                            int result = 0;
                             while ((countOfBytes = fileInput.read(buffer)) > 0) {
+                                result += countOfBytes;
                                 socketOut.write(buffer, 0, countOfBytes);
                             }
+                            System.out.println(result);
                         } catch (FileNotFoundException ignored) {
                             System.out.println("File doesn't exist, press enter to continue");
                             scanner.nextLine();
@@ -145,9 +150,12 @@ public class Client {
                                 OutputStream fileOutput = new FileOutputStream(new File(filename1));
                                 byte[] buffer = new byte[4096];
                                 int countOfBytes = 1;
+                                int result = 0;
                                 while ((countOfBytes = socketIn.read(buffer)) > 0) {
+                                    result += countOfBytes;
                                     fileOutput.write(buffer, 0, countOfBytes);
                                 }
+                                System.out.println(result);
                                 socketIn.close();
                                 fileOutput.close();
                             }
@@ -182,6 +190,17 @@ public class Client {
         return messages;
     }
 
+    private ArrayList<String> parseFilesList(String json){
+        ArrayList<String> lexems = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\"(.*?)\"");
+        Matcher matcher = pattern.matcher(json);
+        while (matcher.find()) {
+            lexems.add(matcher.group(1));
+        }
+        lexems.remove(0);
+        return lexems;
+    }
+
     private void drawMenu() {
         System.out.println("==========================Menu==========================");
         System.out.println("Hey, " + login);
@@ -195,12 +214,16 @@ public class Client {
         System.out.println("Enter number of action you want to do...");
     }
 
+    private void drawFilesTable(ArrayList<String> files){
+        System.out.println("==========================Files==========================");
+        for (String file: files){
+            System.out.println(file);
+        }
+    }
+
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
-    }
-
-    private void close() throws IOException {
     }
 
     private void drawMessagesTable(ArrayList<Message> messagesList) {

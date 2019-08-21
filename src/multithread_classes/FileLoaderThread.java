@@ -36,9 +36,12 @@ public class FileLoaderThread extends Thread {
                     OutputStream fileOutput = new FileOutputStream(new File(filename));
                     byte[] buffer = new byte[4096];
                     int countOfBytes = 1;
+                    int result = 0;
                     while ((countOfBytes = socketIn.read(buffer)) > 0) {
+                        result += countOfBytes;
                         fileOutput.write(buffer, 0, countOfBytes);
                     }
+                    System.out.println(result);
                     socketIn.close();
                     fileOutput.close();
                     DBMS.writeFilename(filename);
@@ -51,9 +54,12 @@ public class FileLoaderThread extends Thread {
                         InputStream fileInput = new FileInputStream(new File(filename));
                         byte[] buffer = new byte[4096];
                         int countOfBytes;
+                        int result = 0;
                         while ((countOfBytes = fileInput.read(buffer)) > 0){
+                            result += countOfBytes;
                             socketOut.write(buffer, 0, countOfBytes);
                         }
+                        System.out.println(result);
                         socketOut.close();
                         fileInput.close();
                         close();
