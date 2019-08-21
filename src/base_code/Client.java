@@ -110,7 +110,6 @@ public class Client {
                         break;
                     case ("6"):
                         String filename = scanner.nextLine();
-                        System.out.println(filename);
                         try (Socket fileSocket = new Socket("127.0.0.1", 45778);
                              InputStream fileInput = new FileInputStream(new File(filename));
                              DataOutputStream socketOut = new DataOutputStream(fileSocket.getOutputStream())) {
@@ -118,9 +117,12 @@ public class Client {
                             byte[] buffer = new byte[4096];
                             int countOfBytes = 1;
                             while ((countOfBytes = fileInput.read(buffer)) > 0) {
-                                System.out.println(countOfBytes);
                                 socketOut.write(buffer, 0, countOfBytes);
                             }
+                        }
+                        catch (FileNotFoundException ignored){
+                            System.out.println("File doesn't exist, press enter to continue");
+                            scanner.nextLine();
                         }
                 }
                 if (action.equals("5")) {

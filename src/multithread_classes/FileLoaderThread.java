@@ -22,21 +22,24 @@ public class FileLoaderThread extends Thread {
             filename = socketIn.readUTF();
             System.out.println(filename);
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            OutputStream fileOutput = new FileOutputStream(new File("new" + filename));
-            byte[] buffer = new byte[4096];
-            int countOfBytes = 1;
-            while ((countOfBytes = socketIn.read(buffer)) > 0) {
-                System.out.println(countOfBytes);
-                fileOutput.write(buffer, 0, countOfBytes);
-            }
-            socketIn.close();
-            fileOutput.close();
-            System.out.println(filename + " was successfully written to server");
             close();
-        } catch (IOException ignored) {
+        }
+        if (filename == null) {
+            close();
+        } else {
+            try {
+                OutputStream fileOutput = new FileOutputStream(new File("new" + filename));
+                byte[] buffer = new byte[4096];
+                int countOfBytes = 1;
+                while ((countOfBytes = socketIn.read(buffer)) > 0) {
+                    fileOutput.write(buffer, 0, countOfBytes);
+                }
+                socketIn.close();
+                fileOutput.close();
+                System.out.println(filename + " was successfully written to server");
+                close();
+            } catch (IOException ignored) {
+            }
         }
     }
 
