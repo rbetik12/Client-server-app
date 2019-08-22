@@ -11,8 +11,6 @@ import java.util.LinkedList;
 
 
 public class Server {
-    private static LinkedList<FileLoaderThread> fileLoaderThreads;
-
     public Server(int serverPort, int fileLoaderPort) throws IOException {
         new ServerListener(serverPort);
         new FileLoaderListener(fileLoaderPort);
@@ -20,7 +18,7 @@ public class Server {
     }
 
     public static class ServerListener extends Thread {
-        private final LinkedList<ThreadServer> serverThreads;
+        private LinkedList<ThreadServer> serverThreads;
         private ServerSocket serverSocket;
 
         public ServerListener(int port) throws IOException {
@@ -35,6 +33,7 @@ public class Server {
                 while (true) {
                     Socket socket = serverSocket.accept();
                     try {
+                        removeDeadThreads(serverThreads);
                         serverThreads.add(new ThreadServer(socket));
                     } catch (IOException e) {
                         socket.close();
@@ -54,6 +53,7 @@ public class Server {
 
     public static class FileLoaderListener extends Thread {
         private ServerSocket serverSocket;
+        private static LinkedList<FileLoaderThread> fileLoaderThreads;
 
         public FileLoaderListener(int port) throws IOException {
             fileLoaderThreads = new LinkedList<>();
@@ -67,6 +67,7 @@ public class Server {
                 while (true) {
                     Socket socket = serverSocket.accept();
                     try {
+                        removeDeadThreads(fileLoaderThreads);
                         fileLoaderThreads.add(new FileLoaderThread(socket));
                     } catch (IOException e) {
                         socket.close();
@@ -82,11 +83,14 @@ public class Server {
                 }
             }
         }
-
     }
 
-    public static LinkedList<FileLoaderThread> getFileLoaderThreads() {
-        return fileLoaderThreads;
+    private static <T extends Thread> LinkedList<T> removeDeadThreads(LinkedList<T> threadsList) {
+        for (T el : threadsList) {
+            if (!el.isAlive())
+                threadsList.remove(el);
+        }
+        return threadsList;
     }
 
     public static void main(String[] args) throws IOException {

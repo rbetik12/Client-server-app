@@ -33,7 +33,8 @@ public class FileLoaderThread extends Thread {
             try {
                 String action = socketIn.readUTF();
                 if (action.equals("6")) {
-                    OutputStream fileOutput = new FileOutputStream(new File(filename));
+                    DBMS.checkDir("files");
+                    OutputStream fileOutput = new FileOutputStream(new File("files/" + filename));
                     byte[] buffer = new byte[4096];
                     int countOfBytes;
                     while ((countOfBytes = socketIn.read(buffer)) > 0) {
@@ -45,7 +46,8 @@ public class FileLoaderThread extends Thread {
                 } else {
                     if (DBMS.findFilename(filename)) {
                         socketOut.writeUTF("okay");
-                        InputStream fileInput = new FileInputStream(new File(filename));
+                        DBMS.checkDir("files");
+                        InputStream fileInput = new FileInputStream(new File("files/" + filename));
                         byte[] buffer = new byte[4096];
                         int countOfBytes;
                         while ((countOfBytes = fileInput.read(buffer)) > 0) {
@@ -62,19 +64,12 @@ public class FileLoaderThread extends Thread {
         }
     }
 
-    private void close() {
+    private synchronized void close() {
         try {
             if (!socket.isClosed()) {
                 socketOut.close();
                 socketIn.close();
                 socket.close();
-                for (FileLoaderThread thread : Server.getFileLoaderThreads()) {
-                    if (thread == this) {
-                        thread.interrupt();
-                        System.out.println(thread.isAlive());
-                        Server.getFileLoaderThreads().remove(this);
-                    }
-                }
             }
         } catch (IOException ignored) {
         }

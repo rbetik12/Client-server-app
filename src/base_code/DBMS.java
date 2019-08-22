@@ -2,6 +2,7 @@ package base_code;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -9,7 +10,8 @@ import java.util.Scanner;
 public class DBMS {
     private static FileReader fileReader;
     private static FileWriter fileWriter;
-
+    private static String messagesDir = "messages";
+    private static String filesDir = "files";
     public synchronized static boolean findUsername(String username) throws IOException {
         try {
             fileReader = new FileReader("users.txt");
@@ -52,9 +54,10 @@ public class DBMS {
 
     public synchronized static void writeMessages(String login, ArrayList<Message> messages) throws IOException {
         try {
-            fileWriter = new FileWriter(login + ".txt");
+            checkDir(messagesDir);
+            fileWriter = new FileWriter(messagesDir + "/" + login + ".txt");
         } catch (IOException e) {
-            Files.write(Paths.get(login + ".txt"), "\n".getBytes());
+            Files.write(Paths.get(messagesDir + "/" + login + ".txt"), "\n".getBytes());
         } finally {
             for (Message message : messages) {
                 fileWriter.write(message.id + "\n");
@@ -69,7 +72,8 @@ public class DBMS {
     public synchronized static ArrayList<Message> readMessages(String login) {
         ArrayList<Message> messages = new ArrayList<>();
         try {
-            fileReader = new FileReader(login + ".txt");
+            checkDir(messagesDir);
+            fileReader = new FileReader(messagesDir + "/" + login + ".txt");
             Scanner scanner = new Scanner(fileReader);
             while (scanner.hasNextLine()) {
                 String id = scanner.nextLine();
@@ -136,7 +140,7 @@ public class DBMS {
 
     public synchronized static void writeFilename(String filename) throws IOException {
         try {
-            fileWriter = new FileWriter("files.txt", true);
+            fileWriter = new FileWriter( "files.txt", true);
         } catch (IOException e) {
             Files.write(Paths.get("files.txt"), filename.getBytes());
         } finally {
@@ -172,6 +176,18 @@ public class DBMS {
             return filenames;
         } catch (IOException e) {
             return new ArrayList<>();
+        }
+    }
+
+    public synchronized static void checkDir(String path){
+        Path dirPath = Paths.get(path);
+        boolean dirExists = Files.exists(dirPath);
+        if (!dirExists) {
+            try {
+                Files.createDirectory(dirPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
