@@ -10,7 +10,7 @@ public class DBMS {
     private static FileReader fileReader;
     private static FileWriter fileWriter;
 
-    public static boolean findUsername(String username) throws IOException {
+    public synchronized static boolean findUsername(String username) throws IOException {
         try {
             fileReader = new FileReader("users.txt");
             Scanner scanner = new Scanner(fileReader);
@@ -29,13 +29,13 @@ public class DBMS {
         }
     }
 
-    public static void writeUsername(String username) throws IOException {
+    private synchronized static void writeUsername(String username) throws IOException {
         fileWriter = new FileWriter("users.txt", true);
         fileWriter.write("\n" + username);
         fileWriter.close();
     }
 
-    public static ArrayList<String> readAllUsernames() throws IOException {
+    public synchronized static ArrayList<String> readAllUsernames() throws IOException {
         ArrayList<String> usernames = new ArrayList<>();
         try {
             fileReader = new FileReader("users.txt");
@@ -50,7 +50,7 @@ public class DBMS {
         }
     }
 
-    public static void writeMessages(String login, ArrayList<Message> messages) throws IOException {
+    public synchronized static void writeMessages(String login, ArrayList<Message> messages) throws IOException {
         try {
             fileWriter = new FileWriter(login + ".txt");
         } catch (IOException e) {
@@ -59,14 +59,14 @@ public class DBMS {
             for (Message message : messages) {
                 fileWriter.write(message.id + "\n");
                 fileWriter.write(message.username + "\n");
-                fileWriter.write(String.valueOf(message.date) + "\n");
+                fileWriter.write(message.date + "\n");
                 fileWriter.write(message.text + "\n");
             }
             fileWriter.close();
         }
     }
 
-    public static ArrayList<Message> readMessages(String login) {
+    public synchronized static ArrayList<Message> readMessages(String login) {
         ArrayList<Message> messages = new ArrayList<>();
         try {
             fileReader = new FileReader(login + ".txt");
@@ -85,18 +85,18 @@ public class DBMS {
         }
     }
 
-    public static void writeID(int id) throws IOException {
+    public synchronized static void writeID(int id) throws IOException {
         try {
             fileWriter = new FileWriter("ids.txt", true);
         } catch (IOException e) {
             Files.write(Paths.get("ids.txt"), "".getBytes());
         } finally {
-            fileWriter.write(String.valueOf(id) + "\n");
+            fileWriter.write(id + "\n");
             fileWriter.close();
         }
     }
 
-    public static boolean findID(int id) throws IOException {
+    public synchronized static boolean findID(int id) throws IOException {
         try {
             fileReader = new FileReader("ids.txt");
             Scanner scanner = new Scanner(fileReader);
@@ -112,7 +112,7 @@ public class DBMS {
         }
     }
 
-    public static void removeID(int id) throws IOException {
+    public synchronized static void removeID(int id) throws IOException {
         try {
             File temp = new File("temp.txt");
             File ids = new File("ids.txt");
@@ -127,10 +127,51 @@ public class DBMS {
             }
             writer.close();
             reader.close();
-            boolean delete = ids.delete();
-            boolean b = temp.renameTo(ids);
+            ids.delete();
+            temp.renameTo(ids);
         } catch (IOException e) {
             Files.write(Paths.get("ids.txt"), "".getBytes());
+        }
+    }
+
+    public synchronized static void writeFilename(String filename) throws IOException {
+        try {
+            fileWriter = new FileWriter("files.txt", true);
+        } catch (IOException e) {
+            Files.write(Paths.get("files.txt"), filename.getBytes());
+        } finally {
+            fileWriter.write(filename + "\n");
+            fileWriter.close();
+        }
+    }
+
+    public synchronized static boolean findFilename(String filename) {
+        try {
+            fileReader = new FileReader("files.txt");
+            Scanner scanner = new Scanner(fileReader);
+            while (scanner.hasNextLine()) {
+                if (scanner.nextLine().equals(filename))
+                    return true;
+            }
+            fileReader.close();
+            return false;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public synchronized static ArrayList<String> getFilenames() {
+        try {
+            fileReader = new FileReader("files.txt");
+            Scanner scanner = new Scanner(fileReader);
+            ArrayList<String> filenames = new ArrayList<>();
+            while (scanner.hasNextLine()) {
+                filenames.add(scanner.nextLine());
+            }
+            fileReader.close();
+            return filenames;
+        } catch (IOException e) {
+            return new ArrayList<>();
         }
     }
 }

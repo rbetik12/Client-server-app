@@ -11,12 +11,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ThreadServer extends Thread {
-    private Socket socket;
+    private final Socket socket;
     private BufferedReader socketInput;
     private BufferedWriter socketOutput;
     private ArrayList<Message> messages;
     private String login;
-    private Random random;
+    private final Random random;
 
     public ThreadServer(Socket socket) throws IOException {
         random = new Random();
@@ -79,13 +79,17 @@ public class ThreadServer extends Thread {
                             allUsersMessages.addAll(DBMS.readMessages(username));
                         }
                         socketOutput.write(buildMessagesJSON(allUsersMessages));
-                        socketOutput.write("Query for all users messages for successfully satisfied\n");
+                        socketOutput.write(buildFilesJSON(DBMS.getFilenames()));
+                        socketOutput.write("Query for all users messages and files successfully satisfied\n");
                         break;
                     case ("5"):
-                        close();
                         socketOutput.write("Closing connection...\n");
+                        socketOutput.flush();
+                        close();
                         break;
                 }
+                if (action.equals("5"))
+                    break;
                 socketOutput.flush();
             }
 
@@ -93,7 +97,7 @@ public class ThreadServer extends Thread {
             e.printStackTrace();
         } finally {
             System.out.println("Server thread is down...");
-            System.out.println("Saving user's messages to db...");
+            System.out.println("Saving " + login + " messages to db...");
             try {
                 DBMS.writeMessages(login, messages);
             } catch (IOException e) {
@@ -125,6 +129,18 @@ public class ThreadServer extends Thread {
         }
         jsonMessagesList.append("]}\n");
         return jsonMessagesList.toString();
+    }
+
+    private String buildFilesJSON(ArrayList<String> files) {
+        StringBuilder jsonFilesList = new StringBuilder("{\"files\": [");
+        for (int i = 0; i < files.size(); i++) {
+            String jsonFile = String.format("\"%s\"", files.get(i));
+            if (i != files.size() - 1)
+                jsonFile += ",";
+            jsonFilesList.append(jsonFile);
+        }
+        jsonFilesList.append("]}\n");
+        return jsonFilesList.toString();
     }
 
     private Message parse(String message, int id) {
