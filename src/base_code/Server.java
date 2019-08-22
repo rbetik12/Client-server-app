@@ -19,8 +19,8 @@ public class Server {
         System.out.println("Servers started");
     }
 
-    public class ServerListener extends Thread {
-        private LinkedList<ThreadServer> serverThreads;
+    public static class ServerListener extends Thread {
+        private final LinkedList<ThreadServer> serverThreads;
         private ServerSocket serverSocket;
 
         public ServerListener(int port) throws IOException {
@@ -52,7 +52,7 @@ public class Server {
         }
     }
 
-    public class FileLoaderListener extends Thread {
+    public static class FileLoaderListener extends Thread {
         private ServerSocket serverSocket;
 
         public FileLoaderListener(int port) throws IOException {
@@ -84,7 +84,8 @@ public class Server {
         }
 
     }
-    public static LinkedList<FileLoaderThread> getFileLoaderThreads(){
+
+    public static LinkedList<FileLoaderThread> getFileLoaderThreads() {
         return fileLoaderThreads;
     }
 

@@ -10,24 +10,21 @@ import java.util.regex.Pattern;
 
 
 public class Client {
-    private BufferedReader socketInput;
-    private BufferedWriter socketOutput;
-    private int messagesCounter;
-    private String login;
+    private final String login;
 
     public Client(String ip, int port, String login) {
         this.login = login;
-        messagesCounter = 0;
-        try (Socket socket = new Socket(ip, port)) {
-            socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            socketOutput = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+        int messagesCounter = 0;
+        try (Socket socket = new Socket(ip, port);
+             BufferedReader socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+             BufferedWriter socketOutput = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
             socketOutput.write(login + "\n");
             socketOutput.flush();
             Scanner scanner = new Scanner(System.in);
             while (true) {
                 clearScreen();
                 drawMenu();
-                String action = "";
+                String action;
                 Pattern actionPatter = Pattern.compile("[1-7]");
                 while (true) {
                     action = scanner.nextLine();
@@ -74,7 +71,7 @@ public class Client {
                         socketOutput.flush();
                         System.out.println("Choose how you want to sort table by username (u) or date (d)");
                         ArrayList<Message> usersMessages = parseMessagesList(socketInput.readLine());
-                        String sortType = "";
+                        String sortType;
                         while (true) {
                             sortType = scanner.nextLine();
                             if (sortType.equals("u") || sortType.equals("d"))
@@ -97,7 +94,7 @@ public class Client {
                         break;
                     case ("5"):
                         clearScreen();
-                        System.out.println("To exit please enter your username, if you want to go back enter back");
+                        System.out.println("To exit please enter your username, if you want to go back write back");
                         String input = scanner.nextLine();
                         if (input.equals(login)) {
                             socketOutput.write("5\n");
@@ -120,7 +117,7 @@ public class Client {
                             socketOut.writeUTF(filename);
                             socketOut.writeUTF("6");
                             byte[] buffer = new byte[4096];
-                            int countOfBytes = 1;
+                            int countOfBytes;
                             int result = 0;
                             while ((countOfBytes = fileInput.read(buffer)) > 0) {
                                 result += countOfBytes;
@@ -141,22 +138,20 @@ public class Client {
                              DataInputStream socketIn = new DataInputStream(getFileSocket.getInputStream())) {
                             socketOut.writeUTF(filename1);
                             socketOut.writeUTF("7");
-                            if (socketIn.readUTF().equals("null")){
+                            if (socketIn.readUTF().equals("null")) {
                                 System.out.println("File wasn't found on a server");
                                 System.out.println("Press enter to continue");
                                 scanner.nextLine();
-                            }
-                            else {
+                            } else {
                                 OutputStream fileOutput = new FileOutputStream(new File(filename1));
                                 byte[] buffer = new byte[4096];
-                                int countOfBytes = 1;
+                                int countOfBytes;
                                 int result = 0;
                                 while ((countOfBytes = socketIn.read(buffer)) > 0) {
                                     result += countOfBytes;
                                     fileOutput.write(buffer, 0, countOfBytes);
                                 }
                                 System.out.println(result);
-                                socketIn.close();
                                 fileOutput.close();
                             }
                         } catch (IOException e) {
@@ -190,7 +185,7 @@ public class Client {
         return messages;
     }
 
-    private ArrayList<String> parseFilesList(String json){
+    private ArrayList<String> parseFilesList(String json) {
         ArrayList<String> lexems = new ArrayList<>();
         Pattern pattern = Pattern.compile("\"(.*?)\"");
         Matcher matcher = pattern.matcher(json);
@@ -214,14 +209,14 @@ public class Client {
         System.out.println("Enter number of action you want to do...");
     }
 
-    private void drawFilesTable(ArrayList<String> files){
+    private void drawFilesTable(ArrayList<String> files) {
         System.out.println("==========================Files==========================");
-        for (String file: files){
+        for (String file : files) {
             System.out.println(file);
         }
     }
 
-    public static void clearScreen() {
+    private static void clearScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
@@ -248,7 +243,7 @@ public class Client {
                 System.out.println("Logging in...");
                 break;
             }
-            System.out.println("Username you entered doesn\"t match the pattern");
+            System.out.println("Username you entered doesn't match the pattern");
         }
         Client client = new Client("127.0.0.1", 45777, login);
     }

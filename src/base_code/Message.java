@@ -1,10 +1,10 @@
 package base_code;
 
 public class Message {
-    public int id;
-    public String username;
-    public String text;
-    public long date;
+    public final int id;
+    public final String username;
+    public final String text;
+    public final long date;
 
     public Message(int id, String username, long date, String text) {
         this.id = id;
