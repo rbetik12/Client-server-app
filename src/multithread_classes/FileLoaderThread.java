@@ -64,19 +64,12 @@ public class FileLoaderThread extends Thread {
         }
     }
 
-    private void close() {
+    private synchronized void close() {
         try {
             if (!socket.isClosed()) {
                 socketOut.close();
                 socketIn.close();
                 socket.close();
-                for (FileLoaderThread thread : Server.getFileLoaderThreads()) {
-                    if (thread == this) {
-                        thread.interrupt();
-                        System.out.println(thread.isAlive());
-                        Server.getFileLoaderThreads().remove(this);
-                    }
-                }
             }
         } catch (IOException ignored) {
         }
