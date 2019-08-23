@@ -9,9 +9,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+/**
+ *
+ */
 public class Client {
     private final String login;
 
+    /**
+     * Opens new socket connection and output and input channels. Handles all communication with server.
+     *
+     * @param ip    socket ip
+     * @param port  socket port
+     * @param login user's login
+     */
     public Client(String ip, int port, String login) {
         this.login = login;
         try (Socket socket = new Socket(ip, port);
@@ -67,6 +77,21 @@ public class Client {
         }
     }
 
+    /**
+     * Send message that user wrote to server, in JSON format.
+     * Example:
+     * {
+     * "id": "1",  #Will be unique and set on server
+     * "username": "User's login",
+     * "date": "Current date",
+     * "text": "Text that was written by user"
+     * }
+     *
+     * @param socketInput  Socket input stream
+     * @param socketOutput Socket output stream
+     * @param scanner      User's input reader
+     * @throws IOException Whether any problem with IO occurs
+     */
     private void writeMessage(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
         System.out.println("Write message text below: ");
         String messageText = scanner.nextLine();
@@ -77,6 +102,15 @@ public class Client {
         System.out.println(socketInput.readLine());
     }
 
+
+    /**
+     * Receives messages list from a server in JSON format, parses it with parseMessagesList()
+     *
+     * @param socketInput  Socket input stream
+     * @param socketOutput Socket output stream
+     * @param scanner      User's input reader
+     * @throws IOException Whether any problem with IO occurs
+     */
     private void getUserMessagesList(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
         socketOutput.write("2\n");
         socketOutput.flush();
@@ -87,6 +121,14 @@ public class Client {
         System.out.println(socketInput.readLine());
     }
 
+    /**
+     * Sends to server ID of message that should be deleted, message ID is retrieved from user's input
+     *
+     * @param socketInput  Socket input stream
+     * @param socketOutput Socket output stream
+     * @param scanner      User's input reader
+     * @throws IOException Whether any problem with IO occurs
+     */
     private void deleteMessage(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
         System.out.println("Please enter id of message you want to delete: ");
         int messageID = scanner.nextInt();
@@ -96,6 +138,14 @@ public class Client {
         System.out.println(socketInput.readLine());
     }
 
+    /**
+     * Retrieves messages and files list from server, sorts it and shows it to user
+     *
+     * @param socketInput  Socket input stream
+     * @param socketOutput Socket output stream
+     * @param scanner      User's input reader
+     * @throws IOException Whether any problem with IO occurs
+     */
     private void getUsersMessagesAndFilesList(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
         socketOutput.write("4\n");
         socketOutput.flush();
@@ -123,6 +173,14 @@ public class Client {
         System.out.println(socketInput.readLine());
     }
 
+    /**
+     * Initiates closing procedure for client socket and server thread.
+     *
+     * @param socketInput  Socket input stream
+     * @param socketOutput Socket output stream
+     * @param scanner      User's input reader
+     * @throws IOException Whether any problem with IO occurs
+     */
     private void exit(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
         System.out.println("To exit please enter your username, if you want to go back write back");
         String input = scanner.nextLine();
@@ -138,6 +196,13 @@ public class Client {
         }
     }
 
+    /**
+     * Reads file that user asked to load to server, if that file wasn't found on a local computer then it writes an
+     * error to console. Reads file in a small buffer of 4096 bytes and sends it to a server
+     *
+     * @param scanner User's input reader
+     * @throws IOException Whether any problem with IO occurs
+     */
     private void loadFile(Scanner scanner) throws IOException {
         System.out.println("Enter file name: ");
         String filename = scanner.nextLine();
@@ -160,6 +225,13 @@ public class Client {
         }
     }
 
+    /**
+     * If user entered file name that doesn't exist on a server, writes an error to console. Otherwise, starts file
+     * reading from a server stream in a buffer of 4096 bytes.
+     *
+     * @param scanner User's input reader
+     * @throws IOException Whether any problem with IO occurs
+     */
     private void getFile(Scanner scanner) throws IOException {
         System.out.println("Enter file name: ");
         String filename1 = scanner.nextLine();
@@ -189,6 +261,12 @@ public class Client {
         }
     }
 
+    /**
+     * Parses string of json and returns a list of messages
+     *
+     * @param jsonMessagesList String of JSON list with messages
+     * @return ArrayList of messages
+     */
     private ArrayList<Message> parseMessagesList(String jsonMessagesList) {
         LinkedList<String> lexems = new LinkedList<>();
         Pattern pattern = Pattern.compile("\"(.*?)\"");
@@ -204,6 +282,12 @@ public class Client {
         return messages;
     }
 
+    /**
+     * Parses string of json and returns a list of files
+     *
+     * @param json String of JSON list with file names
+     * @return ArrayList of file names
+     */
     private ArrayList<String> parseFilesList(String json) {
         ArrayList<String> lexems = new ArrayList<>();
         Pattern pattern = Pattern.compile("\"(.*?)\"");
@@ -215,6 +299,9 @@ public class Client {
         return lexems;
     }
 
+    /**
+     * Draws menu
+     */
     private void drawMenu() {
         System.out.println("==========================Menu==========================");
         System.out.println("Hey, " + login);
@@ -228,6 +315,11 @@ public class Client {
         System.out.println("Enter number of action you want to do...");
     }
 
+    /**
+     * Draws files table
+     *
+     * @param files List of file names
+     */
     private void drawFilesTable(ArrayList<String> files) {
         System.out.println("==========================Files==========================");
         for (String file : files) {
@@ -235,6 +327,13 @@ public class Client {
         }
     }
 
+    /**
+     * Draws message table
+     * Example of message:
+     * id || username || date || text
+     *
+     * @param messagesList List of messages objects
+     */
     private void drawMessagesTable(ArrayList<Message> messagesList) {
         System.out.println("==========================Messages==========================");
         System.out.println("ID===========Username========Date===============Text========");
