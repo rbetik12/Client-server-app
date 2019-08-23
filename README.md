@@ -1,5 +1,5 @@
-# Java simple client-server communication app
+# Client-server communication app
 
 Server is multithreaded, so it supports multiple users.
 
-Users can send messages to server, see their messages and see other users messages.
+Users can send messages to server, see their messages, see other users messages and load file on and from a server.
