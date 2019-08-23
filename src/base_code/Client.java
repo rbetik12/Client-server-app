@@ -22,7 +22,6 @@ public class Client {
             socketOutput.flush();
             Scanner scanner = new Scanner(System.in);
             while (true) {
-                clearScreen();
                 drawMenu();
                 String action;
                 Pattern actionPatter = Pattern.compile("[1-7]");
@@ -37,7 +36,6 @@ public class Client {
 
                 switch (action) {
                     case ("1"):
-                        clearScreen();
                         System.out.println("Write message text below: ");
                         String messageText = scanner.nextLine();
                         String message = String.format("{\"id\": \"%s\", \"username\": \"%s\", \"date\": \"%s\", \"text\": \"%s\"}", messagesCounter++, login, new Date().getTime(), messageText);
@@ -47,7 +45,6 @@ public class Client {
                         System.out.println(socketInput.readLine());
                         break;
                     case ("2"):
-                        clearScreen();
                         socketOutput.write("2\n");
                         socketOutput.flush();
                         String jsonMessage = socketInput.readLine();
@@ -57,7 +54,6 @@ public class Client {
                         System.out.println(socketInput.readLine());
                         break;
                     case ("3"):
-                        clearScreen();
                         System.out.println("Please enter id of message you want to delete: ");
                         int messageID = scanner.nextInt();
                         socketOutput.write("3\n");
@@ -66,7 +62,6 @@ public class Client {
                         System.out.println(socketInput.readLine());
                         break;
                     case ("4"):
-                        clearScreen();
                         socketOutput.write("4\n");
                         socketOutput.flush();
                         System.out.println("Choose how you want to sort table by username (u) or date (d)");
@@ -93,7 +88,6 @@ public class Client {
                         System.out.println(socketInput.readLine());
                         break;
                     case ("5"):
-                        clearScreen();
                         System.out.println("To exit please enter your username, if you want to go back write back");
                         String input = scanner.nextLine();
                         if (input.equals(login)) {
@@ -108,7 +102,6 @@ public class Client {
                         }
                         break;
                     case ("6"):
-                        clearScreen();
                         System.out.println("Enter file name: ");
                         String filename = scanner.nextLine();
                         try (Socket fileSocket = new Socket("127.0.0.1", 45778);
@@ -130,7 +123,6 @@ public class Client {
                         }
                         break;
                     case ("7"):
-                        clearScreen();
                         System.out.println("Enter file name: ");
                         String filename1 = scanner.nextLine();
                         try (Socket getFileSocket = new Socket("127.0.0.1", 45778);
@@ -216,11 +208,6 @@ public class Client {
         }
     }
 
-    private static void clearScreen() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
-    }
-
     private void drawMessagesTable(ArrayList<Message> messagesList) {
         System.out.println("==========================Messages==========================");
         System.out.println("ID===========Username========Date===============Text========");
@@ -239,7 +226,6 @@ public class Client {
         while (true) {
             login = scanner.next();
             if (Pattern.matches("[a-z]{1,4}", login)) {
-                clearScreen();
                 System.out.println("Logging in...");
                 break;
             }
