@@ -14,7 +14,6 @@ public class Client {
 
     public Client(String ip, int port, String login) {
         this.login = login;
-        int messagesCounter = 0;
         try (Socket socket = new Socket(ip, port);
              BufferedReader socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              BufferedWriter socketOutput = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))) {
@@ -36,119 +35,25 @@ public class Client {
 
                 switch (action) {
                     case ("1"):
-                        System.out.println("Write message text below: ");
-                        String messageText = scanner.nextLine();
-                        String message = String.format("{\"id\": \"%s\", \"username\": \"%s\", \"date\": \"%s\", \"text\": \"%s\"}", messagesCounter++, login, new Date().getTime(), messageText);
-                        socketOutput.write("1\n");
-                        socketOutput.write(message + "\n");
-                        socketOutput.flush();
-                        System.out.println(socketInput.readLine());
+                        writeMessage(socketInput, socketOutput, scanner);
                         break;
                     case ("2"):
-                        socketOutput.write("2\n");
-                        socketOutput.flush();
-                        String jsonMessage = socketInput.readLine();
-                        drawMessagesTable(parseMessagesList(jsonMessage));
-                        System.out.println("Press enter to continue");
-                        scanner.nextLine();
-                        System.out.println(socketInput.readLine());
+                        getUserMessagesList(socketInput, socketOutput, scanner);
                         break;
                     case ("3"):
-                        System.out.println("Please enter id of message you want to delete: ");
-                        int messageID = scanner.nextInt();
-                        socketOutput.write("3\n");
-                        socketOutput.write(messageID + "\n");
-                        socketOutput.flush();
-                        System.out.println(socketInput.readLine());
+                        deleteMessage(socketInput, socketOutput, scanner);
                         break;
                     case ("4"):
-                        socketOutput.write("4\n");
-                        socketOutput.flush();
-                        System.out.println("Choose how you want to sort table by username (u) or date (d)");
-                        ArrayList<Message> usersMessages = parseMessagesList(socketInput.readLine());
-                        String sortType;
-                        while (true) {
-                            sortType = scanner.nextLine();
-                            if (sortType.equals("u") || sortType.equals("d"))
-                                break;
-                            System.out.println("Please enter right type of sort");
-                        }
-                        if (sortType.equals("u")) {
-                            Comparator<Message> compareByUsername = (o1, o2) -> o1.username.compareTo(o2.username);
-                            usersMessages.sort(compareByUsername);
-                        } else {
-                            Comparator<Message> compareByDate = (o1, o2) -> Long.compare(o1.date, o2.date);
-                            usersMessages.sort(compareByDate.reversed());
-                        }
-                        drawMessagesTable(usersMessages);
-                        String filesJSON = socketInput.readLine();
-                        drawFilesTable(parseFilesList(filesJSON));
-                        System.out.println("Press enter to continue");
-                        scanner.nextLine();
-                        System.out.println(socketInput.readLine());
+                        getUsersMessagesAndFilesList(socketInput, socketOutput, scanner);
                         break;
                     case ("5"):
-                        System.out.println("To exit please enter your username, if you want to go back write back");
-                        String input = scanner.nextLine();
-                        if (input.equals(login)) {
-                            socketOutput.write("5\n");
-                        } else {
-                            action = "back";
-                            socketOutput.write("7\n");
-                        }
-                        socketOutput.flush();
-                        if (!action.equals("back")) {
-                            System.out.println(socketInput.readLine());
-                        }
+                        exit(socketInput, socketOutput, scanner);
                         break;
                     case ("6"):
-                        System.out.println("Enter file name: ");
-                        String filename = scanner.nextLine();
-                        try (Socket fileSocket = new Socket("127.0.0.1", 45778);
-                             InputStream fileInput = new FileInputStream(new File(filename));
-                             DataOutputStream socketOut = new DataOutputStream(fileSocket.getOutputStream())) {
-                            socketOut.writeUTF(filename);
-                            socketOut.writeUTF("6");
-                            byte[] buffer = new byte[4096];
-                            int countOfBytes;
-                            int result = 0;
-                            while ((countOfBytes = fileInput.read(buffer)) > 0) {
-                                result += countOfBytes;
-                                socketOut.write(buffer, 0, countOfBytes);
-                            }
-                            System.out.println(result);
-                        } catch (FileNotFoundException ignored) {
-                            System.out.println("File doesn't exist, press enter to continue");
-                            scanner.nextLine();
-                        }
+                        loadFile(scanner);
                         break;
                     case ("7"):
-                        System.out.println("Enter file name: ");
-                        String filename1 = scanner.nextLine();
-                        try (Socket getFileSocket = new Socket("127.0.0.1", 45778);
-                             DataOutputStream socketOut = new DataOutputStream(getFileSocket.getOutputStream());
-                             DataInputStream socketIn = new DataInputStream(getFileSocket.getInputStream())) {
-                            socketOut.writeUTF(filename1);
-                            socketOut.writeUTF("7");
-                            if (socketIn.readUTF().equals("null")) {
-                                System.out.println("File wasn't found on a server");
-                                System.out.println("Press enter to continue");
-                                scanner.nextLine();
-                            } else {
-                                OutputStream fileOutput = new FileOutputStream(new File(filename1));
-                                byte[] buffer = new byte[4096];
-                                int countOfBytes;
-                                int result = 0;
-                                while ((countOfBytes = socketIn.read(buffer)) > 0) {
-                                    result += countOfBytes;
-                                    fileOutput.write(buffer, 0, countOfBytes);
-                                }
-                                System.out.println(result);
-                                fileOutput.close();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        getFile(scanner);
                         break;
                 }
                 if (action.equals("5")) {
@@ -159,6 +64,128 @@ public class Client {
             e.printStackTrace();
         } finally {
             System.out.println("Connection closed");
+        }
+    }
+
+    private void writeMessage(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
+        System.out.println("Write message text below: ");
+        String messageText = scanner.nextLine();
+        String message = String.format("{\"id\": \"%s\", \"username\": \"%s\", \"date\": \"%s\", \"text\": \"%s\"}", 0, login, new Date().getTime(), messageText);
+        socketOutput.write("1\n");
+        socketOutput.write(message + "\n");
+        socketOutput.flush();
+        System.out.println(socketInput.readLine());
+    }
+
+    private void getUserMessagesList(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
+        socketOutput.write("2\n");
+        socketOutput.flush();
+        String jsonMessage = socketInput.readLine();
+        drawMessagesTable(parseMessagesList(jsonMessage));
+        System.out.println("Press enter to continue");
+        scanner.nextLine();
+        System.out.println(socketInput.readLine());
+    }
+
+    private void deleteMessage(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
+        System.out.println("Please enter id of message you want to delete: ");
+        int messageID = scanner.nextInt();
+        socketOutput.write("3\n");
+        socketOutput.write(messageID + "\n");
+        socketOutput.flush();
+        System.out.println(socketInput.readLine());
+    }
+
+    private void getUsersMessagesAndFilesList(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
+        socketOutput.write("4\n");
+        socketOutput.flush();
+        System.out.println("Choose how you want to sort table by username (u) or date (d)");
+        ArrayList<Message> usersMessages = parseMessagesList(socketInput.readLine());
+        String sortType;
+        while (true) {
+            sortType = scanner.nextLine();
+            if (sortType.equals("u") || sortType.equals("d"))
+                break;
+            System.out.println("Please enter right type of sort");
+        }
+        if (sortType.equals("u")) {
+            Comparator<Message> compareByUsername = (o1, o2) -> o1.username.compareTo(o2.username);
+            usersMessages.sort(compareByUsername);
+        } else {
+            Comparator<Message> compareByDate = (o1, o2) -> Long.compare(o1.date, o2.date);
+            usersMessages.sort(compareByDate.reversed());
+        }
+        drawMessagesTable(usersMessages);
+        String filesJSON = socketInput.readLine();
+        drawFilesTable(parseFilesList(filesJSON));
+        System.out.println("Press enter to continue");
+        scanner.nextLine();
+        System.out.println(socketInput.readLine());
+    }
+
+    private void exit(BufferedReader socketInput, BufferedWriter socketOutput, Scanner scanner) throws IOException {
+        System.out.println("To exit please enter your username, if you want to go back write back");
+        String input = scanner.nextLine();
+        if (input.equals(login)) {
+            socketOutput.write("5\n");
+        } else {
+            input = "back";
+            socketOutput.write("7\n");
+        }
+        socketOutput.flush();
+        if (!input.equals("back")) {
+            System.out.println(socketInput.readLine());
+        }
+    }
+
+    private void loadFile(Scanner scanner) throws IOException {
+        System.out.println("Enter file name: ");
+        String filename = scanner.nextLine();
+        try (Socket fileSocket = new Socket("127.0.0.1", 45778);
+             InputStream fileInput = new FileInputStream(new File(filename));
+             DataOutputStream socketOut = new DataOutputStream(fileSocket.getOutputStream())) {
+            socketOut.writeUTF(filename);
+            socketOut.writeUTF("6");
+            byte[] buffer = new byte[4096];
+            int countOfBytes;
+            int result = 0;
+            while ((countOfBytes = fileInput.read(buffer)) > 0) {
+                result += countOfBytes;
+                socketOut.write(buffer, 0, countOfBytes);
+            }
+            System.out.println(result);
+        } catch (FileNotFoundException ignored) {
+            System.out.println("File doesn't exist, press enter to continue");
+            scanner.nextLine();
+        }
+    }
+
+    private void getFile(Scanner scanner) throws IOException {
+        System.out.println("Enter file name: ");
+        String filename1 = scanner.nextLine();
+        try (Socket getFileSocket = new Socket("127.0.0.1", 45778);
+             DataOutputStream socketOut = new DataOutputStream(getFileSocket.getOutputStream());
+             DataInputStream socketIn = new DataInputStream(getFileSocket.getInputStream())) {
+            socketOut.writeUTF(filename1);
+            socketOut.writeUTF("7");
+            if (socketIn.readUTF().equals("null")) {
+                System.out.println("File wasn't found on a server");
+                System.out.println("Press enter to continue");
+                scanner.nextLine();
+            } else {
+                OutputStream fileOutput = new FileOutputStream(new File(filename1));
+                byte[] buffer = new byte[4096];
+                int countOfBytes;
+                int result = 0;
+                while ((countOfBytes = socketIn.read(buffer)) > 0) {
+                    result += countOfBytes;
+                    fileOutput.write(buffer, 0, countOfBytes);
+                }
+                System.out.println(result);
+                fileOutput.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
