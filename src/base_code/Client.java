@@ -218,7 +218,7 @@ public class Client {
                 result += countOfBytes;
                 socketOut.write(buffer, 0, countOfBytes);
             }
-            System.out.println(result);
+            System.out.println("Total bytes send: " + result);
         } catch (FileNotFoundException ignored) {
             System.out.println("File doesn't exist, press enter to continue");
             scanner.nextLine();
