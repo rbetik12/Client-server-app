@@ -7,11 +7,21 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * That class responsible for DB management
+ */
 public class DBMS {
     private static FileReader fileReader;
     private static FileWriter fileWriter;
     private static String messagesDir = "messages";
-    private static String filesDir = "files";
+
+    /**
+     * Looks for provided username in users db
+     *
+     * @param username username that should be find
+     * @return true if it was found, otherwise false
+     * @throws IOException when IO error occurs
+     */
     public synchronized static boolean findUsername(String username) throws IOException {
         try {
             fileReader = new FileReader("users.txt");
@@ -31,12 +41,22 @@ public class DBMS {
         }
     }
 
+    /**
+     * Writes username to DB
+     *
+     * @param username username that should be saved
+     * @throws IOException when IO error occurs
+     */
     private synchronized static void writeUsername(String username) throws IOException {
         fileWriter = new FileWriter("users.txt", true);
         fileWriter.write("\n" + username);
         fileWriter.close();
     }
 
+    /**
+     * @return ArrayList of all usernames saved in DB
+     * @throws IOException when IO error occurs
+     */
     public synchronized static ArrayList<String> readAllUsernames() throws IOException {
         ArrayList<String> usernames = new ArrayList<>();
         try {
@@ -52,6 +72,18 @@ public class DBMS {
         }
     }
 
+    /**
+     * Saves user's messages to DB
+     * Example:
+     * id
+     * author name
+     * date
+     * text
+     *
+     * @param login    author of message
+     * @param messages ArrayList of messages
+     * @throws IOException when IO error occurs
+     */
     public synchronized static void writeMessages(String login, ArrayList<Message> messages) throws IOException {
         try {
             checkDir(messagesDir);
@@ -69,6 +101,10 @@ public class DBMS {
         }
     }
 
+    /**
+     * @param login author name
+     * @return ArrayList of user's messages
+     */
     public synchronized static ArrayList<Message> readMessages(String login) {
         ArrayList<Message> messages = new ArrayList<>();
         try {
@@ -89,6 +125,12 @@ public class DBMS {
         }
     }
 
+    /**
+     * Saves message ID to DB
+     *
+     * @param id message ID
+     * @throws IOException when IO error occurs
+     */
     public synchronized static void writeID(int id) throws IOException {
         try {
             fileWriter = new FileWriter("ids.txt", true);
@@ -100,6 +142,13 @@ public class DBMS {
         }
     }
 
+    /**
+     * Looks for provided ID in DB
+     *
+     * @param id message ID
+     * @return true if ID was found, otherwise false
+     * @throws IOException when IO error occurs
+     */
     public synchronized static boolean findID(int id) throws IOException {
         try {
             fileReader = new FileReader("ids.txt");
@@ -116,6 +165,12 @@ public class DBMS {
         }
     }
 
+    /**
+     * Removes provided ID from DB
+     *
+     * @param id message ID that should be removed from DB
+     * @throws IOException when IO error occurs
+     */
     public synchronized static void removeID(int id) throws IOException {
         try {
             File temp = new File("temp.txt");
@@ -138,9 +193,15 @@ public class DBMS {
         }
     }
 
+    /**
+     * Saves file name to DB
+     *
+     * @param filename file name that should be saved to DB
+     * @throws IOException when IO error occurs
+     */
     public synchronized static void writeFilename(String filename) throws IOException {
         try {
-            fileWriter = new FileWriter( "files.txt", true);
+            fileWriter = new FileWriter("files.txt", true);
         } catch (IOException e) {
             Files.write(Paths.get("files.txt"), filename.getBytes());
         } finally {
@@ -149,6 +210,10 @@ public class DBMS {
         }
     }
 
+    /**
+     * @param filename file that should be found
+     * @return true if file was found, otherwise false
+     */
     public synchronized static boolean findFilename(String filename) {
         try {
             fileReader = new FileReader("files.txt");
@@ -164,6 +229,9 @@ public class DBMS {
         }
     }
 
+    /**
+     * @return ArrayList of all files stored on server, if that list doesn't exist returns just empty list
+     */
     public synchronized static ArrayList<String> getFilenames() {
         try {
             fileReader = new FileReader("files.txt");
@@ -179,7 +247,12 @@ public class DBMS {
         }
     }
 
-    public synchronized static void checkDir(String path){
+    /**
+     * Checks for specified dir to exist, if not creates it
+     *
+     * @param path dir path
+     */
+    public synchronized static void checkDir(String path) {
         Path dirPath = Paths.get(path);
         boolean dirExists = Files.exists(dirPath);
         if (!dirExists) {
