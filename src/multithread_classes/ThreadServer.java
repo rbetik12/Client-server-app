@@ -10,6 +10,9 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * That thread is responsible for serving user requests for messages
+ */
 public class ThreadServer extends Thread {
     private final Socket socket;
     private BufferedReader socketInput;
@@ -41,51 +44,19 @@ public class ThreadServer extends Thread {
                 String action = socketInput.readLine();
                 switch (action) {
                     case ("1"):
-                        int id = random.nextInt(Integer.MAX_VALUE);
-                        String jsonMessage = socketInput.readLine();
-                        while (DBMS.findID(id))
-                            id = random.nextInt(Integer.MAX_VALUE);
-                        Message newMessage = parse(jsonMessage, id);
-                        messages.add(newMessage);
-                        DBMS.writeID(id);
-                        DBMS.writeMessages(login, messages);
-                        socketOutput.write("Message was successfully received and saved\n");
+                        saveMessage();
                         break;
                     case ("2"):
-                        socketOutput.write(buildMessagesJSON(messages));
-                        socketOutput.write("Messages list query successfully completed\n");
+                        sendUsersMessagesList();
                         break;
                     case ("3"):
-                        boolean messageWasFound = false;
-                        int messageID = Integer.parseInt(socketInput.readLine());
-                        for (Message message : messages) {
-                            if (message.id == messageID) {
-                                messages.remove(message);
-                                messageWasFound = true;
-                                DBMS.removeID(messageID);
-                                break;
-                            }
-                        }
-                        if (messageWasFound) {
-                            socketOutput.write("Message with ID: " + messageID + " was successfully removed\n");
-                            DBMS.writeMessages(login, messages);
-                        } else
-                            socketOutput.write("Message with ID: " + messageID + " doesn't exist\n");
+                        deleteMessage();
                         break;
                     case ("4"):
-                        ArrayList<String> usernames = DBMS.readAllUsernames();
-                        ArrayList<Message> allUsersMessages = new ArrayList<>();
-                        for (String username : usernames) {
-                            allUsersMessages.addAll(DBMS.readMessages(username));
-                        }
-                        socketOutput.write(buildMessagesJSON(allUsersMessages));
-                        socketOutput.write(buildFilesJSON(DBMS.getFilenames()));
-                        socketOutput.write("Query for all users messages and files successfully satisfied\n");
+                        sendAllMessagesAndFiles();
                         break;
                     case ("5"):
-                        socketOutput.write("Closing connection...\n");
-                        socketOutput.flush();
-                        close();
+                        closeSocket();
                         break;
                 }
                 if (action.equals("5"))
@@ -106,6 +77,70 @@ public class ThreadServer extends Thread {
         }
     }
 
+    /**
+     * Closes all socket connections
+     *
+     * @throws IOException when IO error occurs
+     */
+    private void closeSocket() throws IOException {
+        socketOutput.write("Closing connection...\n");
+        socketOutput.flush();
+        close();
+    }
+
+    /**
+     * Sends to client all users messages and all files that stored on server
+     *
+     * @throws IOException when IO occurs
+     */
+    private void sendAllMessagesAndFiles() throws IOException {
+        ArrayList<String> usernames = DBMS.readAllUsernames();
+        ArrayList<Message> allUsersMessages = new ArrayList<>();
+        for (String username : usernames) {
+            allUsersMessages.addAll(DBMS.readMessages(username));
+        }
+        socketOutput.write(buildMessagesJSON(allUsersMessages));
+        socketOutput.write(buildFilesJSON(DBMS.getFilenames()));
+        socketOutput.write("Query for all users messages and files successfully satisfied\n");
+    }
+
+    /**
+     * Receives ID of message that should be deleted and tries to delete it. Result of this operation is send back
+     * to client
+     *
+     * @throws IOException when IO error occurs
+     */
+    private void deleteMessage() throws IOException {
+        boolean messageWasFound = false;
+        int messageID = Integer.parseInt(socketInput.readLine());
+        for (Message message : messages) {
+            if (message.id == messageID) {
+                messages.remove(message);
+                messageWasFound = true;
+                DBMS.removeID(messageID);
+                break;
+            }
+        }
+        if (messageWasFound) {
+            socketOutput.write("Message with ID: " + messageID + " was successfully removed\n");
+            DBMS.writeMessages(login, messages);
+        } else
+            socketOutput.write("Message with ID: " + messageID + " doesn't exist\n");
+    }
+
+    /**
+     * Sends JSON messages list to client
+     *
+     * @throws IOException when IO error occurs
+     */
+    private void sendUsersMessagesList() throws IOException {
+        socketOutput.write(buildMessagesJSON(messages));
+        socketOutput.write("Messages list query successfully completed\n");
+    }
+
+    /**
+     * Closes socket and its streams
+     */
     private void close() {
         try {
             if (!socket.isClosed()) {
@@ -118,6 +153,12 @@ public class ThreadServer extends Thread {
         }
     }
 
+    /**
+     * Builds json list of messages stored on server
+     *
+     * @param messages messages list
+     * @return messages JSON
+     */
     private String buildMessagesJSON(ArrayList<Message> messages) {
         StringBuilder jsonMessagesList = new StringBuilder("{\"messages\": [");
         for (int i = 0; i < messages.size(); i++) {
@@ -131,6 +172,12 @@ public class ThreadServer extends Thread {
         return jsonMessagesList.toString();
     }
 
+    /**
+     * Builds JSON list of files stored on server
+     *
+     * @param files List of files
+     * @return JSON string
+     */
     private String buildFilesJSON(ArrayList<String> files) {
         StringBuilder jsonFilesList = new StringBuilder("{\"files\": [");
         for (int i = 0; i < files.size(); i++) {
@@ -143,6 +190,13 @@ public class ThreadServer extends Thread {
         return jsonFilesList.toString();
     }
 
+    /**
+     * Parses JSON string and returns new message object
+     *
+     * @param message message in json format
+     * @param id      message id
+     * @return message object
+     */
     private Message parse(String message, int id) {
         Pattern pattern = Pattern.compile("\"(.*?)\"");
         Matcher matcher = pattern.matcher(message);
@@ -153,5 +207,22 @@ public class ThreadServer extends Thread {
             i++;
         }
         return new Message(id, info[3], Long.parseLong(info[5]), info[7]);
+    }
+
+    /**
+     * Saves received from client message to DB
+     *
+     * @throws IOException when IO error occurs
+     */
+    private void saveMessage() throws IOException {
+        int id = random.nextInt(Integer.MAX_VALUE);
+        String jsonMessage = socketInput.readLine();
+        while (DBMS.findID(id))
+            id = random.nextInt(Integer.MAX_VALUE);
+        Message newMessage = parse(jsonMessage, id);
+        messages.add(newMessage);
+        DBMS.writeID(id);
+        DBMS.writeMessages(login, messages);
+        socketOutput.write("Message was successfully received and saved\n");
     }
 }

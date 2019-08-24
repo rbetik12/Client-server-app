@@ -1,5 +1,8 @@
 package base_code;
 
+/**
+ *  Message object contains id, author name, date and text
+ */
 public class Message {
     public final int id;
     public final String username;
